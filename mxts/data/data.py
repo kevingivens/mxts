@@ -4,20 +4,21 @@ from typing import Mapping, Union, Type, Optional, Any, cast
 from ..exchange import ExchangeType
 from ..instrument import Instrument
 from ..utils import id_gen
-from ..config.enums   import DataType
+from ..config.enums import DataType
 
 _ID_GEN = id_gen()
 
 
 class Data(object):
-    __slots__ = [
-        "id",
-        "timestamp",
-        "type",
-        "instrument",
-        "exchange",
-        "data",
-    ]
+    
+    # __slots__ = [
+    #     "id",
+    #     "timestamp",
+    #     "type",
+    #     "instrument",
+    #     "exchange",
+    #     "data",
+    # ]
 
     def __init__(
         self,

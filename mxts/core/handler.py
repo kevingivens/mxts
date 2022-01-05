@@ -4,8 +4,28 @@ from typing import TYPE_CHECKING, Callable, Optional, Tuple
 from ..data import Event
 from ..config import EventType
 
+if TYPE_CHECKING:
+    # Circular import
+    from mxts.engine import StrategyManager
+
 
 class EventHandler(metaclass=ABCMeta):
+    _manager: "StrategyManager"
+
+    def _setManager(self, mgr: "StrategyManager") -> None:
+        self._manager = mgr
+
+    def _valid_callback(self, callback: str) -> Optional[Callable]:
+        """
+        TODO: turn this into wrapper ?
+        """
+        if (
+            hasattr(self, callback)
+            and not isabstract(callback)
+            and not hasattr(getattr(self, callback), "_original")
+        ):
+            return getattr(self, callback)
+        return None
     
     def callback(self, event_type: EventType) -> Tuple[Optional[Callable], ...]:
         return {

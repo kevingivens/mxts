@@ -7,25 +7,16 @@ from ...config import EventType
 
 
 class Event(object):
-    __slots__ = ["__type", "__target"]
+    # __slots__ = ["__type", "__target"]
 
     # for convenience
-    Types = EventType
+    # Types = EventType
 
     def __init__(
         self, type: EventType, target: Union[Data, Order, Trade, Error, None]
     ) -> None:
-        self.__type = type
-        self.__target = target
-
-    @property
-    def type(self) -> EventType:
-        return self.__type
-
-    @property
-    def target(self) -> Union[Data, Order, Trade, Error, None]:
-        return self.__target  # type: ignore
-        # ignore None type so typing is happy in other parts
+        self.type = type
+        self.target = target
 
     def __repr__(self) -> str:
         return f"Event(type={self.type}, target={self.target})"
