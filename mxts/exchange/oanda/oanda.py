@@ -8,8 +8,8 @@ from mxts.exchange import Exchange
 from .client import CoinbaseExchangeClient
 
 
-class CoinbaseProExchange(Exchange):
-    """Coinbase Pro Exchange
+class OandaExchange(Exchange):
+    """Oanda Exchange
 
     Args:
         trading_type (TradingType): type of trading to do. Must be Sandbox or Live
@@ -69,21 +69,14 @@ class CoinbaseProExchange(Exchange):
             print("*" * 100)
             super().__init__(ExchangeType("coinbasepro"))
 
-        # multiply by 100,000,000 and do everything in integer volumes
-        self._satoshis = satoshis
-
-        # Create an exchange client based on the coinbase docs
-        # Note: cbpro doesnt seem to work as well as I remember,
-        # and ccxt has moved to a "freemium" model where coinbase
-        # pro now costs money for full access, so here i will just
-        # implement the api myself.
+    
+        # Create an exchange client
         self._client = CoinbaseExchangeClient(
             self._trading_type,
             self.exchange(),
             self._api_key,
             self._api_secret,
             self._api_passphrase,
-            self._satoshis,
         )
 
         # list of market data subscriptions
