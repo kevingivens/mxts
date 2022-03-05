@@ -18,6 +18,11 @@ class TradingType(BaseEnum):
     BACKTEST = "BACKTEST"
 
 
+class DateTimeFormat(BaseEnum):
+    RFC3339 = 'RFC3339'
+    UNIX = 'UNIX'
+
+
 class Side(BaseEnum):
     BUY = "BUY"
     SELL = "SELL"

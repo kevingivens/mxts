@@ -4,7 +4,6 @@ from typing import Any, Mapping, Optional, Type, Union, cast
 from ...config import DataType, OrderFlag, OrderType, Side
 from ..exchange import ExchangeType
 from ..instrument import Instrument
-from .cpp import _CPP, _make_cpp_order
 
 
 class Order(object):
@@ -25,12 +24,7 @@ class Order(object):
     #    "stop_target",
     #    "force_done",
     #]
-
-    # for convenience
-    # Types = OrderType
-    # Sides = Side
-    # Flags = OrderFlag
-
+    
     def __init__(
         self,
         volume: float,

@@ -1,12 +1,13 @@
 import asyncio
 import logging
-import os
 import ujson as json
 from functools import partial
 from time import time
 
 import aiohttp
 from yarl import URL
+
+from mxts.config import OandaConfig
 
 from .definitions.types import AcceptDatetimeFormat
 from .definitions.types import AccountID
@@ -30,36 +31,13 @@ class OandaClient(AccountInterface, InstrumentInterface, OrderInterface, Positio
                   PricingInterface, TradeInterface, TransactionInterface, UserInterface,
                   HealthInterface):
     """
-    Create an API context for v20 access
-
-    Args:
-        token: User generated token from the online account configuration page
-        account_id: The account id the client will connect to. If None will default to
-            the first account number returned by :meth:`~async_v20.OandaClient.list_accounts`
-        format_order_requests: True=Format all OrderRequests
-            in the context of the orders instrument. False=Do not format OrderRequests,
-            raise :class:`~async_v20.exceptions.InvalidOrderRequest` for values outside of allowed range.
-        max_transaction_history: Maximum past transactions to store
-        rest_host: The hostname of the v20 REST server
-        rest_port: The port of the v20 REST server
-        stream_host: The hostname of the v20 REST server
-        stream_port: The port of the v20 REST server
-        rest_scheme: The scheme of the connection to rest server.
-        stream_scheme: The scheme of the connection to the stream server.
-        health_host: The hostname of the health API server
-        health_port: The port of the health server
-        health_scheme: The scheme of the connection for the health server.
-        datetime_format: The format to request when dealing with times
-        rest_timeout: The timeout to use when making a polling request with
-            the v20 REST server
-        stream_timeout: Period to wait for an new json object during streaming
-        max_requests_per_second: Maximum HTTP requests sent per second
-        max_simultaneous_connections: Maximum concurrent HTTP requests
-        debug: Set to True to log debug messages.
-
+    Create an API context for Oanda access
+   
     """
-    headers = {'Connection': 'keep-alive',
-               'OANDA-Agent': 'async_v20_' + __version__}
+    headers = {
+        'Connection': 'keep-alive',
+        'OANDA-Agent': 'oanda_' + __version__
+    }
 
     default_parameters = {}
 
@@ -105,76 +83,57 @@ class OandaClient(AccountInterface, InstrumentInterface, OrderInterface, Positio
         return self._datetime_format
 
     def __init__(self,
-                 token=None,
-                 account_id=None,
-                 format_order_requests=False,
-                 max_transaction_history=100,
-                 rest_host='api-fxpractice.oanda.com',
-                 rest_port=443,
-                 rest_scheme='https',
-                 stream_host='stream-fxpractice.oanda.com',
-                 stream_port=None,
-                 stream_scheme='https',
-                 health_host='api-status.oanda.com',
-                 health_port=80,
-                 health_scheme='http',
-                 datetime_format='UNIX',
-                 rest_timeout=10,
-                 stream_timeout=60,
-                 max_requests_per_second=99,
-                 max_simultaneous_connections=10,
-                 debug=False):
+                 config: OandaConfig):
 
         self.version = __version__
 
-        if token is None:
-            token = os.environ['OANDA_TOKEN']
+        self.account_id = config.account_id
 
-        self.account_id = account_id
+        self.format_order_requests = config.format_order_requests
 
-        self.format_order_requests = format_order_requests
-
-        self.max_transaction_history = max_transaction_history
+        self.max_transaction_history = config.max_transaction_history
 
         # V20 REST API URL
-        rest_host = partial(URL.build, host=rest_host, port=rest_port, scheme=rest_scheme)
+        rest_host = partial(URL.build, host=rest_host, port=config.rest_port, scheme=config.rest_scheme)
 
         # v20 STREAM API URL
-        stream_host = partial(URL.build, host=stream_host, port=stream_port, scheme=stream_scheme)
+        stream_host = partial(URL.build, host=stream_host, port=config.stream_port, scheme=config.stream_scheme)
 
         # V20 API health URL
-        health_host = partial(URL.build, host=health_host, port=health_port, scheme=health_scheme)
+        health_host = partial(URL.build, host=health_host, port=config.health_port, scheme=config.health_scheme)
 
         self._hosts = {'REST': rest_host, 'STREAM': stream_host, 'HEALTH': health_host}
 
         # The timeout to use when making a polling request with the
         # v20 REST server
-        self.rest_timeout = rest_timeout
+        self.rest_timeout = config.rest_timeout
 
         # The timeout to use when waiting for the next object when wait for a stream response
-        self.stream_timeout = stream_timeout
+        self.stream_timeout = config.stream_timeout
 
-        self.max_requests_per_second = max_requests_per_second
+        self.max_requests_per_second = config.max_requests_per_second
 
-        self.max_simultaneous_connections = max_simultaneous_connections
+        self.max_simultaneous_connections = config.max_simultaneous_connections
 
-        self._datetime_format = datetime_format
+        self._datetime_format = config.datetime_format
 
         # This is the default parameter dictionary. OandaClient Methods that require certain parameters
         # that are  not explicitly passed will try to find it in this dict
         self.default_parameters.update(
-            {Authorization: 'Bearer {}'.format(token),
-             AcceptDatetimeFormat: datetime_format}
+            {
+                Authorization: f'Bearer {config.token}',
+                AcceptDatetimeFormat: config.datetime_format
+            }
         )
 
-        self.debug = debug
+        self.debug = config.verbose
 
     async def account(self):
         """Get updated account
 
         Returns:
 
-            :class:`~async_v20.Account`
+            :class:`~oanda.Account`
         """
         logger.info('account()')
         if too_many_passed_transactions(self):
@@ -188,7 +147,7 @@ class OandaClient(AccountInterface, InstrumentInterface, OrderInterface, Positio
 
         Returns:
 
-            :class:`tuple` (:class:`bool`, [:class`~async_v20.interface.response.Response`, ...])
+            :class:`tuple` (:class:`bool`, [:class`~oanda.interface.response.Response`, ...])
 
         """
 
@@ -265,7 +224,7 @@ class OandaClient(AccountInterface, InstrumentInterface, OrderInterface, Positio
             json_serialize=json.dumps,
             headers=self.headers,
             connector=conn,
-            read_timeout=0  # async_v20 will handle timeouts to allow dynamic changing of timeout.
+            read_timeout=0  # oanda will handle timeouts to allow dynamic changing of timeout.
             # after client initialization
         )
 
@@ -297,17 +256,6 @@ class OandaClient(AccountInterface, InstrumentInterface, OrderInterface, Positio
                 logger.info('Initializing client')
                 self.initializing = True  # immediately set initializing to make sure
                 # Upcoming requests wait for this initialization to complete.
-
-                # V1 REST API is deprecated
-                # self._initialization_step = self.list_services.__name__
-                # response = await self.list_services()
-                # if response:
-                #     for service in response.services:
-                #         if service.current_event.status.name != 'Up':
-                #             logger.warning(f'{service.name} {service.current_event.message}')
-                # else:
-                #     logging.warning('Server did not return available services')
-                #     print(response.json())
 
                 # Get the first account listed in in accounts.
                 # If another is desired the account must be configured
