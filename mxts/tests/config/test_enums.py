@@ -1,4 +1,4 @@
-from aat.config import Side, EventType, DataType, InstrumentType, OrderType, OrderFlag
+from mxts.config import Side, EventType, DataType, InstrumentType, OrderType, OrderFlag
 
 
 class TestEnums:
