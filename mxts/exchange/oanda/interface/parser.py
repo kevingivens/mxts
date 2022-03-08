@@ -41,7 +41,7 @@ def _lookup_schema(endpoint, status):
 
 async def _create_response(json_body, endpoint, schema, status, boolean, datetime_format):
     # Here we iterate through all the json objects returned in the response
-    # and construct the corresponding async_v20 type as determined by the endpoints
+    # and construct the corresponding oanda type as determined by the endpoints
     # Schema
     if isinstance(schema, dict):
         data = []

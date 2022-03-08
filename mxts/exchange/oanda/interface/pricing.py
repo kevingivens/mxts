@@ -18,18 +18,18 @@ class PricingInterface(object):
 
         Args:
 
-            instruments: :class:`~async_v20.endpoints.annotations.Instruments`
+            instruments: :class:`~oanda.endpoints.annotations.Instruments`
             list of Instruments to get pricing for.
-            since: :class:`~async_v20.DateTime`
+            since: :class:`~oanda.DateTime`
                 Date/Time filter to apply to the returned prices. Only prices
                 with a time later than this filter will be provided.
 
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (prices=( :class:`~async_v20.Price`, ...),
-                time= :class:`~async_v20.DateTime`)
+                :class:`~oanda.interface.response.Response`
+                (prices=( :class:`~oanda.Price`, ...),
+                time= :class:`~oanda.DateTime`)
         """
         pass
 
@@ -53,22 +53,22 @@ class PricingInterface(object):
 
         Args:
 
-            instruments: :class:`~async_v20.endpoints.annotations.Instruments`
+            instruments: :class:`~oanda.endpoints.annotations.Instruments`
             list of Instruments to stream Prices for.
-            snapshot: :class:`~async_v20.endpoints.annotations.Snapshot`
+            snapshot: :class:`~oanda.endpoints.annotations.Snapshot`
                 Flag that enables/disables the sending of a pricing snapshot
                 when initially connecting to the stream.
 
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (price= :class:`~async_v20.Price`)
+                :class:`~oanda.interface.response.Response`
+                (price= :class:`~oanda.Price`)
 
                 **OR**
 
-                :class:`~async_v20.interface.response.Response`
-                (heartbeat= :class:`~async_v20.PricingHeartbeat`)
+                :class:`~oanda.interface.response.Response`
+                (heartbeat= :class:`~oanda.PricingHeartbeat`)
 
 
         """

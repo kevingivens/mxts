@@ -17,8 +17,8 @@ class AccountInterface(object):
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (accounts=( :class:`~async_v20.AccountProperties`, ...),)
+                :class:`~oanda.interface.response.Response`
+                (accounts=( :class:`~oanda.AccountProperties`, ...),)
 
         """
         pass
@@ -33,9 +33,9 @@ class AccountInterface(object):
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (account= :class:`~async_v20.Account`,
-                lastTransactionID= :class:`~async_v20.TransactionID`)
+                :class:`~oanda.interface.response.Response`
+                (account= :class:`~oanda.Account`,
+                lastTransactionID= :class:`~oanda.TransactionID`)
         """
         pass
 
@@ -47,9 +47,9 @@ class AccountInterface(object):
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (account= :class:`~async_v20.AccountSummary`,
-                lastTransactionID= :class:`~async_v20.TransactionID`)
+                :class:`~oanda.interface.response.Response`
+                (account= :class:`~oanda.AccountSummary`,
+                lastTransactionID= :class:`~oanda.TransactionID`)
         """
         pass
 
@@ -63,15 +63,15 @@ class AccountInterface(object):
 
         Args:
 
-            instruments: :class:`~async_v20.endpoints.annotations.Instruments`
+            instruments: :class:`~oanda.endpoints.annotations.Instruments`
             list of instruments to query specifically.
 
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (instruments=( :class:`~async_v20.Instrument`, ...),
-                lastTransactionID= :class:`~async_v20.TransactionID`)
+                :class:`~oanda.interface.response.Response`
+                (instruments=( :class:`~oanda.Instrument`, ...),
+                lastTransactionID= :class:`~oanda.TransactionID`)
         """
         pass
 
@@ -82,29 +82,29 @@ class AccountInterface(object):
 
         Args:
 
-            alias: :class:`~async_v20.endpoints.annotations.Alias`
+            alias: :class:`~oanda.endpoints.annotations.Alias`
                 Client-defined alias (name) for the Account
-            margin_rate: :class:`~async_v20.DecimalNumber`
+            margin_rate: :class:`~oanda.DecimalNumber`
                 The string representation of a decimal number.
 
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (clientConfigureTransaction= :class:`~async_v20.ClientConfigureTransaction`,
-                lastTransactionID= :class:`~async_v20.TransactionID`)
+                :class:`~oanda.interface.response.Response`
+                (clientConfigureTransaction= :class:`~oanda.ClientConfigureTransaction`,
+                lastTransactionID= :class:`~oanda.TransactionID`)
 
             status [400]
-                :class:`~async_v20.interface.response.Response`
-                (clientConfigureRejectTransaction= :class:`~async_v20.ClientConfigureRejectTransaction`,
-                lastTransactionID= :class:`~async_v20.TransactionID`,
+                :class:`~oanda.interface.response.Response`
+                (clientConfigureRejectTransaction= :class:`~oanda.ClientConfigureRejectTransaction`,
+                lastTransactionID= :class:`~oanda.TransactionID`,
                 errorCode= :class:`~builtins.str`,
                 errorMessage= :class:`~builtins.str`)
 
             status [403]
-                :class:`~async_v20.interface.response.Response`
-                (clientConfigureRejectTransaction= :class:`~async_v20.ClientConfigureRejectTransaction`,
-                lastTransactionID= :class:`~async_v20.TransactionID`,
+                :class:`~oanda.interface.response.Response`
+                (clientConfigureRejectTransaction= :class:`~oanda.ClientConfigureRejectTransaction`,
+                lastTransactionID= :class:`~oanda.TransactionID`,
                 errorCode= :class:`~builtins.str`,
                 errorMessage= :class:`~builtins.str`)
 
@@ -121,15 +121,15 @@ class AccountInterface(object):
             OandaClient will supply since_transaction_id if None is provided
 
         Args:
-            since_transaction_id: :class:`~async_v20.endpoints.annotations.SinceTransactionID`
+            since_transaction_id: :class:`~oanda.endpoints.annotations.SinceTransactionID`
                 ID of the Transaction to get Account changes since.
 
         Returns:
 
             status [200]
-                :class:`~async_v20.interface.response.Response`
-                (changes= :class:`~async_v20.AccountChanges`,
-                state= :class:`~async_v20.AccountChangesState`,
-                lastTransactionID= :class:`~async_v20.TransactionID`)
+                :class:`~oanda.interface.response.Response`
+                (changes= :class:`~oanda.AccountChanges`,
+                state= :class:`~oanda.AccountChangesState`,
+                lastTransactionID= :class:`~oanda.TransactionID`)
         """
         pass

@@ -1,5 +1,6 @@
 """Module that defines the behaviour of the exposed client method calls by using decorators
 """
+from asyncio import TimeoutError as AsyncTimeOutError
 import logging
 from functools import wraps
 from inspect import signature
@@ -9,7 +10,8 @@ from .parser import parse_response
 from ..definitions.helpers import create_doc_signature
 from ..endpoints.annotations import SinceTransactionID
 from ..exceptions import ResponseTimeout
-from asyncio import TimeoutError as AsyncTimeOutError
+
+
 logger = logging.getLogger(__name__)
 
 

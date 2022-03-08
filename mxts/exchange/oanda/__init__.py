@@ -1,9 +1,9 @@
 import logging
 
-from oanda.client import OandaClient
-from oanda.client import __version__
-from oanda.definitions import *
-from oanda.endpoints.annotations import *
+from .client import OandaClient
+from .client import __version__
+from .definitions import *
+from .endpoints.annotations import *
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 

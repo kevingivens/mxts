@@ -31,19 +31,20 @@ def arg_parse(__init__, template: tuple, preset_values: dict) -> classmethod:
 
 
 class Metaclass(type):
-    """Metaclass for all types in async_v20.
+    """Metaclass for all oanda types.
 
     This class:
         - Configures how the subclasses instantiate their attributes
         - Adds __slots__ to improve memory management
-        - Wraps the subclass' __init__ to handle CamelCase kwargs
+        - Wraps the subclass __init__ to handle CamelCase kwargs
         - Creates a nicer documentation signature for readthedocs.io
-        - Allows subclass' to pre-define attributes by passing arguments. eg.
+        - Allows subclass to pre-define attributes by passing arguments. eg.
 
         class Foo(Model, foo=Bar)
             pass
 
-        would have the attribute foo_instance.foo == Bar
+        would have the attribute foo_instance.foo == Bar 
+
         """
 
     def __new__(mcs, name, bases, namespace, **kwargs):
@@ -55,6 +56,7 @@ class Metaclass(type):
             arg_names = ()
 
         slots = arg_names + tuple(kwargs) + tuple(namespace.get('__slots__', ()))
+        
         if jit:
             slots = slots + tuple(map(lambda x: '_' + x, arg_names))
 
@@ -105,7 +107,6 @@ class Model(object, metaclass=Metaclass):
 
     def __repr__(self):
         def information():
-
             # These attributes seem to be the most important to users
             for attribute in ('id', 'instrument', 'amount', 'units',
                               'current_units', 'realized_pl',
@@ -119,6 +120,7 @@ class Model(object, metaclass=Metaclass):
 
         # Attempt to get important attributes otherwise provide everything
         attributes = ', '.join(information())
+        
         if not attributes:
             attributes = ', '.join(self._fields)
 
@@ -199,7 +201,7 @@ class Model(object, metaclass=Metaclass):
                             attr = attr
                 elif json and isinstance(attr, (float, Specifier)):
                     # Technically OANDA's spec declares all specifiers as strings
-                    # though TradeID and OrderID in async_v20 are integers. As this
+                    # though TradeID and OrderID in oanda are integers. As this
                     # seems to be most useful type. We will make sure to cast them back
                     # to strings when sending JSON data to OANDA
                     attr = str(attr)
@@ -218,7 +220,7 @@ class Model(object, metaclass=Metaclass):
 
         Args:
             datetime_format: either `UNIX` or `RFC3339` controls the representation
-              of :class:`~async_v20.definitions.primitives.DataTime` objects"""
+              of :class:`~oanda.definitions.primitives.DataTime` objects"""
         return json.dumps(self.dict(json=True, datetime_format=datetime_format))
 
     def data(self, json=False, datetime_format=None, delimiter=None):
@@ -226,7 +228,7 @@ class Model(object, metaclass=Metaclass):
 
         Args:
             json: True, dict will contain OANDA's JSON representation of objects (camelCase),
-              False, dict will contain async_v20 representation of objects (snake_case).
+              False, dict will contain oanda representation of objects (snake_case).
             datetime_format: either `UNIX` or `RFC3339` will serialize the date times into the
               corresponding format
             delimiter: Value to use when flattening the the data structure. Defaults to `_`
@@ -240,7 +242,7 @@ class Model(object, metaclass=Metaclass):
 
         Args:
             json: True, dict will contain OANDA's JSON representation of objects (camelCase),
-              False, dict will contain async_v20 representation of objects (snake_case).
+              False, dict will contain oanda representation of objects (snake_case).
             datetime_format: either `UNIX` or `RFC3339` will serialize the date times into the
               corresponding format
             delimiter: Value to use when flattening the the data structure. Defaults to `_`
