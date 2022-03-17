@@ -1,8 +1,12 @@
 import pytest
 
-from .fixtures.server import create_dummy_server
+from mxts.exchange.coinbase.client import CoinbaseClient
 
+from .fixtures.server import server
 
-@pytest.fixture(name='dummy_server')
-async def _dummy_server(aiohttp_server):
-    return await create_dummy_server(aiohttp_server)
+server = server
+
+@pytest.fixture
+async def client() -> CoinbaseClient:
+    async with CoinbaseClient() as client:
+        yield client

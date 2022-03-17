@@ -51,8 +51,9 @@ async def get_product_info(request: web.Request) -> web.Response:
         "auction_mode": False
     })
 
-
-async def create_dummy_server(aiohttp_server: Any) -> web.Server:
+@pytest.fixture
+@pytest.mark.asyncio
+async def server(aiohttp_server: Any) -> web.Server:
     app = web.Application()
     app.add_routes(
         [
