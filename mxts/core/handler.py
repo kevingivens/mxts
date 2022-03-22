@@ -74,49 +74,49 @@ class EventHandler(metaclass=ABCMeta):
     ################################################
 
     @abstractmethod
-    async def onTrade(self, event: Event) -> None:
+    async def on_trade(self, event: Event) -> None:
         """Called whenever a `Trade` event is received"""
 
-    async def onOrder(self, event: Event) -> None:
+    async def on_order(self, event: Event) -> None:
         """Called whenever an Order `Open`, `Cancel`, `Change`, or `Fill` event is received"""
         pass
 
-    async def onOpen(self, event: Event) -> None:
+    async def on_open(self, event: Event) -> None:
         """Called whenever an Order `Open` event is received"""
         pass
 
-    async def onCancel(self, event: Event) -> None:
+    async def on_cancel(self, event: Event) -> None:
         """Called whenever an Order `Cancel` event is received"""
         pass
 
-    async def onChange(self, event: Event) -> None:
+    async def on_change(self, event: Event) -> None:
         """Called whenever an Order `Change` event is received"""
         pass
 
-    async def onFill(self, event: Event) -> None:
+    async def on_fill(self, event: Event) -> None:
         """Called whenever an Order `Fill` event is received"""
         pass
 
-    async def onData(self, event: Event) -> None:
+    async def on_data(self, event: Event) -> None:
         """Called whenever other data is received"""
 
-    async def onHalt(self, event: Event) -> None:
+    async def on_halt(self, event: Event) -> None:
         """Called whenever an exchange `Halt` event is received, i.e. an event to stop trading"""
         pass
 
-    async def onContinue(self, event: Event) -> None:
+    async def on_continue(self, event: Event) -> None:
         """Called whenever an exchange `Continue` event is received, i.e. an event to continue trading"""
         pass
 
-    async def onError(self, event: Event) -> None:
+    async def on_error(self, event: Event) -> None:
         """Called whenever an internal error occurs"""
         pass
 
-    async def onStart(self, event: Event) -> None:
+    async def on_start(self, event: Event) -> None:
         """Called once at engine initialization time"""
         pass
 
-    async def onExit(self, event: Event) -> None:
+    async def on_exit(self, event: Event) -> None:
         """Called once at engine exit time"""
         pass
 
@@ -125,26 +125,26 @@ class EventHandler(metaclass=ABCMeta):
     #                                              #
     # NOTE: these should all be of the form onVerb #
     ################################################
-    async def onBought(self, event: Event) -> None:
+    async def on_bought(self, event: Event) -> None:
         """Called on my order bought"""
         pass
 
-    async def onSold(self, event: Event) -> None:
+    async def on_sold(self, event: Event) -> None:
         """Called on my order sold"""
         pass
 
-    async def onTraded(self, event: Event) -> None:
+    async def on_traded(self, event: Event) -> None:
         """Called on my order bought or sold"""
         pass
 
-    async def onReceived(self, event: Event) -> None:
+    async def on_received(self, event: Event) -> None:
         """Called on my order received by exchange"""
         pass
 
-    async def onRejected(self, event: Event) -> None:
+    async def on_rejected(self, event: Event) -> None:
         """Called on my order rejected"""
         pass
 
-    async def onCanceled(self, event: Event) -> None:
+    async def on_canceled(self, event: Event) -> None:
         """Called on my order canceled"""
         pass

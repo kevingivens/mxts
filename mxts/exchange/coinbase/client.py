@@ -1,6 +1,4 @@
-import asyncio
 import base64
-
 import hashlib
 import hmac
 import time
@@ -16,10 +14,9 @@ from pandas import Timestamp
 from .data import *
    
 
-class _cbClient:
-    def __init__(self, base_url: URL, user: str, **kwargs) -> None:
+class CoinbaseClient:
+    def __init__(self, base_url: URL, **kwargs) -> None:
         self._base_url = base_url
-        self._user = user
         self._cb_secret = kwargs.get("cb_secret")
         self._cb_key = kwargs.get("cb_key")
         self._cb_passphrase = kwargs.get("cb_passphrase")
@@ -28,7 +25,7 @@ class _cbClient:
     async def close(self) -> None:
         return await self._session.close()
 
-    async def __aenter__(self) -> "_cbClient":
+    async def __aenter__(self) -> "CoinbaseClient":
         return self
 
     async def __aexit__(
@@ -44,12 +41,12 @@ class _cbClient:
         """This is used to sign the requests in the coinbase-specified auth scheme
 
         Args:
-            method (_type_): _description_
-            url (_type_): _description_
-            body (str, optional): _description_. Defaults to "".
+            method (str): HTTP verb
+            url (str): url sub path
+            body (str, optional): HTTP body params as string. Defaults to "".
    
         Returns:
-            _type_: _description_
+            dict: headers
         """
         timestamp = str(time.time())
         message = timestamp + method + url + body
@@ -70,9 +67,15 @@ class _cbClient:
     def _make_url(self, path: str, params = {}) -> URL:
         return self._base_url / path % params
 
-    
-    async def get_account(self, product_id: str) -> Ticker:
-        async with self._session.get(self._make_url(f"accounts")) as resp:
+    async def get_accounts(self) -> List[Account]:
+        url = self._make_url(f"accounts") 
+        async with self._session.get(url, headers=self._hash_msg("GET", url.path)) as resp:
+            ret = await resp.json()
+            return [Account(**r) for r in ret]
+
+    async def get_account(self, account_id: str) -> Account:
+        url = self._make_url(f"accounts")
+        async with self._session.get(url, headers=self._hash_msg("GET", url.path)) as resp:
             ret = await resp.json()
             return Account(**ret)
 
@@ -80,21 +83,104 @@ class _cbClient:
         async with self._session.post(
              self._make_url("conversions"),
              json={"owner": self._user, "title": title, "text": text},
-         ) as resp:
+             ) as resp:
              ret = await resp.json()
-
 
     async def get_ticker(self, product_id: str) -> Ticker:
         async with self._session.get(self._make_url(f"products/{product_id}/ticker")) as resp:
             ret = await resp.json()
             return Ticker(**ret)
     
-
     async def get_stats(self, product_id: str) -> Stats:
         async with self._session.get(self._make_url(f"products/{product_id}/stats")) as resp:
             ret = await resp.json()
             return Stats(**ret)
     
+    async def get_candles(self, product_id: str, **kwargs) -> List[Candle]:
+        """ 
+            kwargs:
+                granularity:  str
+                start: str Timestamp for starting range of aggregations
+                end: str Timestamp for ending range of aggregations
+        
+        """
+        async with self._session.get(self._make_url(f"products/{product_id}/candles", params=kwargs)) as resp:
+            ret = await resp.json()
+            return [Candle(**r) for r in ret]
+
+    async def get_fills(self, **kwargs) -> List[Fill]:
+        """ 
+        kwargs:
+            order_id str
+                limit to fills on a specific order. Either order_id or product_id is required.
+            product_id str 
+                limit to fills on a specific product. Either order_id or product_id is required.
+            profile_id str 
+                get results for a specific profile
+            limit int 
+                Limit on number of results to return
+            before int 
+                Used for pagination. Sets start cursor to before date.
+            after int 
+                Used for pagination. Sets end cursor to after date.
+        
+        """
+        async with self._session.get(self._make_url(f"fills", params=kwargs)) as resp:
+            ret = await resp.json()
+            return [Fill(**r) for r in ret]
+    
+    async def get_orders(self, **kwargs) -> List[Order]:
+        """ 
+        kwargs:
+        profile_id str Filter results by a specific profile_id
+        product_id str Filter results by a specific product_id
+        sortedBy str Sort criteria for results.
+        sorting str Ascending or descending order, by sortedBy
+        desc start_date date-time Filter results by minimum posted date
+        end_date date-time Filter results by maximum posted date
+        before str Used for pagination. Sets start cursor to before date.
+        after str Used for pagination. Sets end cursor to after date.
+        limit int required Limit on number of results to return.
+        100 status array of strings required
+        Array with order statuses to filter by.
+        
+        """
+        async with self._session.get(self._make_url(f"orders", params=kwargs)) as resp:
+            ret = await resp.json()
+            return [Order(**r) for r in ret]
+
+    async def create_order(self, **kwargs) -> :
+        """ 
+        kwargs:
+        profile_id str Filter results by a specific profile_id
+        product_id str Filter results by a specific product_id
+        sortedBy str Sort criteria for results.
+        sorting str Ascending or descending order, by sortedBy
+        desc start_date date-time Filter results by minimum posted date
+        end_date date-time Filter results by maximum posted date
+        before str Used for pagination. Sets start cursor to before date.
+        after str Used for pagination. Sets end cursor to after date.
+        limit int required Limit on number of results to return.
+        100 status array of strings required
+        Array with order statuses to filter by.
+        
+        e.g. 
+        json = {
+            "profile_id": "default profile_id",
+            "type": "limit",
+            "side": "buy",
+            "stp": "dc",
+            "stop": "loss",
+            "time_in_force": "GTC",
+            "cancel_after": "min",
+            "post_only": "false"
+        }
+
+        """
+        async with self._session.post(self._make_url(f"orders", json=kwargs)) as resp:
+            ret = await resp.json()
+            return OrderResponse(**ret)
+
     async def get_candles(self, product_id: str, **kwargs) -> List[Candle]:
         """ 
             kwargs:
@@ -142,19 +228,3 @@ class _cbClient:
     #        ret = await resp.json()
     #        return [Post(text=None, **item) for item in ret["data"]]
 
-
-
-async def main():
-    url = URL("https://api.exchange._cb.com")
-    user = "givenskm"
-    async with _cbClient(url, user) as client:
-        ticker = await client.get_ticker('BTC-USD')
-        print("ticker: ", ticker)
-        # stats = await client.get_stats('BTC-USD')
-        # print("stats: ", stats)
-        # ccy_info = await client.get_currency('BTC')
-        # print("ccy: ", ccy_info)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
