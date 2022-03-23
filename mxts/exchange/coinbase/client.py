@@ -79,11 +79,8 @@ class CoinbaseClient:
             ret = await resp.json()
             return Account(**ret)
 
-    async def convert_currency(self, product_id: str) -> Ticker:
-        async with self._session.post(
-             self._make_url("conversions"),
-             json={"owner": self._user, "title": title, "text": text},
-             ) as resp:
+    async def convert_currency(self, **kwargs) -> Ticker:
+        async with self._session.post(self._make_url("conversions"), json=kwargs) as resp:
              ret = await resp.json()
 
     async def get_ticker(self, product_id: str) -> Ticker:
@@ -149,7 +146,7 @@ class CoinbaseClient:
             ret = await resp.json()
             return [Order(**r) for r in ret]
 
-    async def create_order(self, **kwargs) -> :
+    async def create_order(self, **kwargs) -> None:
         """ 
         kwargs:
         profile_id str Filter results by a specific profile_id
@@ -179,20 +176,9 @@ class CoinbaseClient:
         """
         async with self._session.post(self._make_url(f"orders", json=kwargs)) as resp:
             ret = await resp.json()
-            return OrderResponse(**ret)
+            return 
 
-    async def get_candles(self, product_id: str, **kwargs) -> List[Candle]:
-        """ 
-            kwargs:
-                granularity:  str
-                start: str Timestamp for starting range of aggregations
-                end: str Timestamp for ending range of aggregations
-        
-        """
-        async with self._session.get(self._make_url(f"products/{product_id}/candles", params=kwargs)) as resp:
-            ret = await resp.json()
-            return [Candle(**r) for r in ret]
-
+   
     async def get_currency(self, currency_id: str) -> Currency:
        async with self._session.get(self._make_url(f"currencies/{currency_id}")) as resp:
            ret = await resp.json()
@@ -222,9 +208,4 @@ class CoinbaseClient:
     #    ) as resp:
     #        ret = await resp.json()
     #        return Post(**ret["data"])
-
-    #async def list(self) -> List[Post]:
-    #    async with self._session.get(self._make_url(f"api")) as resp:
-    #        ret = await resp.json()
-    #        return [Post(text=None, **item) for item in ret["data"]]
 

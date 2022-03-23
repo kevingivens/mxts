@@ -12,6 +12,13 @@ class Ticker(BaseModel):
     ask: float
     volume: float
 
+
+class Fees(BaseModel):
+    maker_fee_rate: float
+    taker_fee_rate: float
+    usd_volume: Optional[float]
+
+
 class Stats(BaseModel):
     open: float
     high: float
@@ -19,6 +26,16 @@ class Stats(BaseModel):
     last: float
     volume: float
     volume_30day: float
+
+
+class Account(BaseModel):
+    id: str
+    currency: str
+    balance: float
+    hold: float
+    available: float
+    profile_id: str
+    trading_enabled: bool
 
 
 class Candle(BaseModel):
