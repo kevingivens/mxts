@@ -29,7 +29,7 @@ class StrategyPortfolioMixin(object):
         """Get portfolio object"""
         return self._manager.portfolio()
 
-    def priceHistory(self, instrument: Instrument = None) -> Union[dict, pd.DataFrame]:
+    def price_history(self, instrument: Instrument = None) -> Union[dict, pd.DataFrame]:
         """Get price history for asset
 
         Args:
@@ -37,4 +37,4 @@ class StrategyPortfolioMixin(object):
         Returns:
             DataFrame: price history
         """
-        return self._manager.priceHistory(instrument=instrument)
+        return self._manager.price_history(instrument=instrument)

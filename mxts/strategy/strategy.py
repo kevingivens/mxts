@@ -1,10 +1,10 @@
 import asyncio
 from abc import abstractmethod
 from typing import Any, List
-from .calculations import CalculationsMixin
+# from .calculations import CalculationsMixin
 from .portfolio import StrategyPortfolioMixin
-from .risk import StrategyRiskMixin
-from .utils import StrategyUtilsMixin
+# from .risk import StrategyRiskMixin
+# from .utils import StrategyUtilsMixin
 from ..config import Side
 from ..core import Event, EventHandler, Order, Instrument
 from ..utils import id_generator
@@ -12,78 +12,78 @@ from ..utils import id_generator
 
 class Strategy(
     EventHandler,
-    StrategyUtilsMixin,
+    #StrategyUtilsMixin,
     StrategyPortfolioMixin,
-    StrategyRiskMixin,
-    CalculationsMixin,
+    #StrategyRiskMixin,
+    #CalculationsMixin,
 ):
-    _ID_GENERATOR = id_generator()
+    # _ID_GENERATOR = id_generator()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)  # type: ignore
-        self.__inst = Strategy._ID_GENERATOR()
+        # self.__inst = Strategy._ID_GENERATOR()
 
     def name(self) -> str:
         return repr(self)
 
     def __repr__(self) -> str:
-        return "{}-{}".format(self.__class__.__name__, self.__inst)
+        return "<{self.__class__.__name__}>"
 
     #########################
     # Event Handler Methods #
     #########################
     @abstractmethod
-    async def onTrade(self, event: Event) -> None:
+    async def on_trade(self, event: Event) -> None:
         """Called whenever a `Trade` event is received"""
 
-    async def onOrder(self, event: Event) -> None:
+    async def on_order(self, event: Event) -> None:
         """Called whenever an Order `Open`, `Cancel`, `Change`, or `Fill` event is received"""
         pass
 
-    async def onOpen(self, event: Event) -> None:
+    async def on_open(self, event: Event) -> None:
         """Called whenever an Order `Open` event is received"""
         pass
 
-    async def onCancel(self, event: Event) -> None:
+    async def on_cancel(self, event: Event) -> None:
         """Called whenever an Order `Cancel` event is received"""
         pass
 
-    async def onChange(self, event: Event) -> None:
+    async def on_change(self, event: Event) -> None:
         """Called whenever an Order `Change` event is received"""
         pass
 
-    async def onFill(self, event: Event) -> None:
+    async def on_fill(self, event: Event) -> None:
         """Called whenever an Order `Fill` event is received"""
         pass
 
-    async def onData(self, event: Event) -> None:
+    async def on_data(self, event: Event) -> None:
         """Called whenever other data is received"""
         pass
 
-    async def onHalt(self, event: Event) -> None:
+    async def on_halt(self, event: Event) -> None:
         """Called whenever an exchange `Halt` event is received, i.e. an event to stop trading"""
         pass
 
-    async def onContinue(self, event: Event) -> None:
+    async def on_continue(self, event: Event) -> None:
         """Called whenever an exchange `Continue` event is received, i.e. an event to continue trading"""
         pass
 
-    async def onError(self, event: Event) -> None:
+    async def on_error(self, event: Event) -> None:
         """Called whenever an internal error occurs"""
         pass
 
-    async def onStart(self, event: Event) -> None:
+    async def on_start(self, event: Event) -> None:
         """Called once at engine initialization time"""
         pass
 
-    async def onExit(self, event: Event) -> None:
+    async def on_exit(self, event: Event) -> None:
         """Called once at engine exit time"""
         pass
 
     #########################
     # Order Entry Callbacks #
     #########################
-    async def onBought(self, event: Event) -> None:
+    async def on_bought(self, event: Event) -> None:
         """callback method for if your order executes (buy)
 
         Args:
@@ -91,7 +91,7 @@ class Strategy(
         """
         pass
 
-    async def onSold(self, event: Event) -> None:
+    async def on_sold(self, event: Event) -> None:
         """callback method for if your order executes (sell)
 
         Args:
@@ -99,7 +99,7 @@ class Strategy(
         """
         pass
 
-    async def onTraded(self, event: Event) -> None:
+    async def on_traded(self, event: Event) -> None:
         """callback method for if your order executes (either buy or sell)
 
         Args:
@@ -107,7 +107,7 @@ class Strategy(
         """
         pass
 
-    async def onRejected(self, event: Event) -> None:
+    async def on_rejected(self, event: Event) -> None:
         """callback method for if your order fails to execute
 
         Args:
@@ -115,7 +115,7 @@ class Strategy(
         """
         pass
 
-    async def onCanceled(self, event: Event) -> None:
+    async def on_canceled(self, event: Event) -> None:
         """callback method for if your order is canceled
 
         Args:
@@ -126,12 +126,12 @@ class Strategy(
     #######################
     # Order Entry Methods #
     #######################
-    async def newOrder(self, order: Order) -> bool:
+    async def new_order(self, order: Order) -> bool:
         """helper method, defers to buy/sell"""
         # defer to execution
-        return await self._manager.newOrder(self, order)
+        return await self._manager.new_order(self, order)
 
-    async def cancelOrder(self, order: Order) -> bool:
+    async def cancel_order(self, order: Order) -> bool:
         """cancel an open order
 
         Args:
@@ -140,7 +140,7 @@ class Strategy(
             None
         """
         # defer to execution
-        return await self._manager.cancelOrder(self, order)
+        return await self._manager.cancel_order(self, order)
 
     async def cancel(self, order: Order) -> bool:
         """cancel an open order
@@ -151,7 +151,7 @@ class Strategy(
             None
         """
         # defer to execution
-        return await self._manager.cancelOrder(self, order)
+        return await self._manager.cancel_order(self, order)
 
     async def buy(self, order: Order) -> bool:
         """submit a buy order. Note that this is merely a request for an order, it provides no guarantees that the order will
@@ -175,7 +175,7 @@ class Strategy(
         """
         return await self._manager.newOrder(self, order)
 
-    async def cancelAll(self, instrument: Instrument = None) -> List[bool]:
+    async def cancel_all(self, instrument: Instrument = None) -> List[bool]:
         """cancel all open orders. If argument is provided, cancel only orders for
         that instrument.
 
@@ -189,7 +189,7 @@ class Strategy(
             return await asyncio.gather(*(self.cancel(order) for order in orders))
         return []
 
-    async def closeAll(self, instrument: Instrument = None) -> List[bool]:
+    async def close_all(self, instrument: Instrument = None) -> List[bool]:
         """close all open postions immediately. If argument is provided, close only positions for
         that instrument.
 
@@ -199,7 +199,7 @@ class Strategy(
             None
         """
         # cancel all open orders
-        await self.cancelAll(instrument=instrument)
+        await self.cancel_all(instrument=instrument)
 
         # construct closing orders
         orders = [
