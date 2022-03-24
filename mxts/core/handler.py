@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class EventHandler(metaclass=ABCMeta):
     _manager: "StrategyManager"
 
-    def _setManager(self, mgr: "StrategyManager") -> None:
+    def _set_manager(self, mgr: "StrategyManager") -> None:
         self._manager = mgr
 
     def _valid_callback(self, callback: str) -> Optional[Callable]:
@@ -30,41 +30,41 @@ class EventHandler(metaclass=ABCMeta):
     def callback(self, event_type: EventType) -> Tuple[Optional[Callable], ...]:
         return {
             # Market data
-            EventType.TRADE: (self._valid_callback("onTrade"),),
+            EventType.TRADE: (self._valid_callback("on_trade"),),
             EventType.OPEN: (
-                self._valid_callback("onOpen"),
-                self._valid_callback("onOrder"),
+                self._valid_callback("on_open"),
+                self._valid_callback("on_order"),
             ),
             EventType.CANCEL: (
-                self._valid_callback("onCancel"),
-                self._valid_callback("onOrder"),
+                self._valid_callback("on_cancel"),
+                self._valid_callback("on_order"),
             ),
             EventType.CHANGE: (
-                self._valid_callback("onChange"),
-                self._valid_callback("onOrder"),
+                self._valid_callback("on_change"),
+                self._valid_callback("on_order"),
             ),
             EventType.FILL: (
-                self._valid_callback("onFill"),
-                self._valid_callback("onOrderEvent"),
+                self._valid_callback("on_fill"),
+                self._valid_callback("on_order_event"),
             ),
-            EventType.DATA: (self._valid_callback("onData"),),
-            EventType.HALT: (self._valid_callback("onHalt"),),
-            EventType.CONTINUE: (self._valid_callback("onContinue"),),
-            EventType.ERROR: (self._valid_callback("onError"),),
-            EventType.START: (self._valid_callback("onStart"),),
-            EventType.EXIT: (self._valid_callback("onExit"),),
+            EventType.DATA: (self._valid_callback("on_data"),),
+            EventType.HALT: (self._valid_callback("on_halt"),),
+            EventType.CONTINUE: (self._valid_callback("on_continue"),),
+            EventType.ERROR: (self._valid_callback("on_error"),),
+            EventType.START: (self._valid_callback("on_start"),),
+            EventType.EXIT: (self._valid_callback("on_exit"),),
             # Order Entry
             EventType.BOUGHT: (
-                self._valid_callback("onBought"),
-                self._valid_callback("onTraded"),
+                self._valid_callback("on_bought"),
+                self._valid_callback("on_traded"),
             ),
             EventType.SOLD: (
-                self._valid_callback("onSold"),
-                self._valid_callback("onTraded"),
+                self._valid_callback("on_sold"),
+                self._valid_callback("on_traded"),
             ),
-            EventType.RECEIVED: (self._valid_callback("onReceived"),),
-            EventType.REJECTED: (self._valid_callback("onRejected"),),
-            EventType.CANCELED: (self._valid_callback("onCanceled"),),
+            EventType.RECEIVED: (self._valid_callback("on_received"),),
+            EventType.REJECTED: (self._valid_callback("on_rejected"),),
+            EventType.CANCELED: (self._valid_callback("on_canceled"),),
         }.get(event_type, tuple())
 
     ################################################
@@ -123,7 +123,7 @@ class EventHandler(metaclass=ABCMeta):
     ################################################
     # Order Entry Callbacks                        #
     #                                              #
-    # NOTE: these should all be of the form onVerb #
+    # NOTE: these should all be of the form on_verb#
     ################################################
     async def on_bought(self, event: Event) -> None:
         """Called on my order bought"""

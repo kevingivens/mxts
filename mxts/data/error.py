@@ -35,4 +35,4 @@ class Error(object):
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return f"Error( timestamp={self.timestamp}, callback={self.callback}, handler={self.handler}, exception={format_exception(type(self.exception), self.exception, self.exception.__traceback__)})"
+        return f"Error(timestamp={self.timestamp}, callback={self.callback}, handler={self.handler}, exception={format_exception(type(self.exception), self.exception, self.exception.__traceback__)})"

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Mapping, Union, Type, Optional, Any, cast
 
 from ..exchange import ExchangeType
-from ..instrument import Instrument
+from .instrument import Instrument
 from ..utils import id_gen
 from ..config.enums import DataType
 
@@ -40,7 +40,7 @@ class Data(object):
         self.data = data
 
     def __repr__(self) -> str:
-        return f"Data( id={self.id}, timestamp={self.timestamp}, instrument={self.instrument}, exchange={self.exchange})"
+        return f"<Data(id={self.id}, timestamp={self.timestamp}, instrument={self.instrument}, exchange={self.exchange})>"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Data):

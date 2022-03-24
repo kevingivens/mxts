@@ -54,6 +54,9 @@ class EventType(BaseEnum):
     # Other data event
     DATA = "DATA"
 
+    # Ticker event
+    TICKER = "TICKER"
+
     # System events
     HALT = "HALT"
     CONTINUE = "CONTINUE"

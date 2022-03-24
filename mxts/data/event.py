@@ -1,9 +1,10 @@
 from typing import Mapping, Union
-from .data import Data
-from .order import Order
-from .trade import Trade
+#from .data import Data
+#from .order import Order
+#from .trade import Trade
 from .error import Error
-from ...config import EventType
+from ..exchange.coinbase.data import Ticker
+from ..config import EventType
 
 
 class Event(object):
@@ -13,7 +14,9 @@ class Event(object):
     # Types = EventType
 
     def __init__(
-        self, type: EventType, target: Union[Data, Order, Trade, Error, None]
+        #self, type: EventType, target: Union[Data, Order, Trade, Error, None]
+        self, type: EventType, target: Union[Ticker, Error, None]
+        
     ) -> None:
         self.type = type
         self.target = target

@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Any, Mapping, Optional, Type, Union, cast
 
-from ...config import DataType, OrderFlag, OrderType, Side
+from ..config import DataType, OrderFlag, OrderType, Side
 from ..exchange import ExchangeType
-from ..instrument import Instrument
+from .instrument import Instrument
 
 
 class Order(object):
