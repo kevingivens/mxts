@@ -1,5 +1,6 @@
 from abc import ABCMeta
-from typing import List
+from typing import List, TYPE_CHECKING
+
 from mxts.core import Order, Position
 
 
@@ -15,7 +16,7 @@ class _OrderEntry(metaclass=ABCMeta):
         """get cash balance"""
         return []
 
-    async def newOrder(self, order: Order) -> bool:
+    async def new_order(self, order: Order) -> bool:
         """submit a new order to the exchange. should set the given order's `id` field to exchange-assigned id
         Returns:
             True if order received
@@ -24,7 +25,7 @@ class _OrderEntry(metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-    async def cancelOrder(self, order: Order) -> bool:
+    async def cancel_order(self, order: Order) -> bool:
         """cancel a previously submitted order to the exchange.
         Returns:
             True if order received

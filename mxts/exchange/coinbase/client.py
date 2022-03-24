@@ -79,9 +79,9 @@ class CoinbaseClient:
             ret = await resp.json()
             return Account(**ret)
 
-    async def convert_currency(self, **kwargs) -> Ticker:
-        async with self._session.post(self._make_url("conversions"), json=kwargs) as resp:
-             ret = await resp.json()
+    #async def convert_currency(self, **kwargs) -> Ticker:
+    #    async with self._session.post(self._make_url("conversions"), json=kwargs) as resp:
+    #         ret = await resp.json()
 
     async def get_ticker(self, product_id: str) -> Ticker:
         async with self._session.get(self._make_url(f"products/{product_id}/ticker")) as resp:
@@ -93,119 +93,134 @@ class CoinbaseClient:
             ret = await resp.json()
             return Stats(**ret)
     
-    async def get_candles(self, product_id: str, **kwargs) -> List[Candle]:
+    async def get_candles(self, 
+        product_id: str, 
+        granularity: Optional[str] = None, 
+        start: Optional[Timestamp] = None, 
+        end: Optional[Timestamp] = None
+    ) -> List[Candle]:
         """ 
-            kwargs:
-                granularity:  str
-                start: str Timestamp for starting range of aggregations
-                end: str Timestamp for ending range of aggregations
+        Args:
+            granularity:  str
+            start: Timestamp for starting range of aggregations
+            end: Timestamp for ending range of aggregations
         
         """
-        async with self._session.get(self._make_url(f"products/{product_id}/candles", params=kwargs)) as resp:
+        params = {}
+        if granularity is not None:
+            params["granularity"] = granularity
+        if start is not None:
+            params["start"] = str(start)
+        if end is not None:
+            params["end"] = str(end)
+        
+        async with self._session.get(self._make_url(f"products/{product_id}/candles", params=params)) as resp:
             ret = await resp.json()
             return [Candle(**r) for r in ret]
 
-    async def get_fills(self, **kwargs) -> List[Fill]:
-        """ 
-        kwargs:
-            order_id str
-                limit to fills on a specific order. Either order_id or product_id is required.
-            product_id str 
-                limit to fills on a specific product. Either order_id or product_id is required.
-            profile_id str 
-                get results for a specific profile
-            limit int 
-                Limit on number of results to return
-            before int 
-                Used for pagination. Sets start cursor to before date.
-            after int 
-                Used for pagination. Sets end cursor to after date.
-        
-        """
-        async with self._session.get(self._make_url(f"fills", params=kwargs)) as resp:
-            ret = await resp.json()
-            return [Fill(**r) for r in ret]
+    # async def get_fills(self, **kwargs) -> List[Fill]:
+    #     """ 
+    #     kwargs:
+    #         order_id str
+    #             limit to fills on a specific order. Either order_id or product_id is required.
+    #         product_id str 
+    #             limit to fills on a specific product. Either order_id or product_id is required.
+    #         profile_id str 
+    #             get results for a specific profile
+    #         limit int 
+    #             Limit on number of results to return
+    #         before int 
+    #             Used for pagination. Sets start cursor to before date.
+    #         after int 
+    #             Used for pagination. Sets end cursor to after date.
+    #     
+    #     """
+    #     async with self._session.get(self._make_url(f"fills", params=kwargs)) as resp:
+    #         ret = await resp.json()
+    #         return [Fill(**r) for r in ret]
     
-    async def get_orders(self, **kwargs) -> List[Order]:
-        """ 
-        kwargs:
-        profile_id str Filter results by a specific profile_id
-        product_id str Filter results by a specific product_id
-        sortedBy str Sort criteria for results.
-        sorting str Ascending or descending order, by sortedBy
-        desc start_date date-time Filter results by minimum posted date
-        end_date date-time Filter results by maximum posted date
-        before str Used for pagination. Sets start cursor to before date.
-        after str Used for pagination. Sets end cursor to after date.
-        limit int required Limit on number of results to return.
-        100 status array of strings required
-        Array with order statuses to filter by.
-        
-        """
-        async with self._session.get(self._make_url(f"orders", params=kwargs)) as resp:
-            ret = await resp.json()
-            return [Order(**r) for r in ret]
+    # async def get_orders(self, **kwargs) -> List[Order]:
+    #     """ 
+    #     kwargs:
+    #     profile_id str Filter results by a specific profile_id
+    #     product_id str Filter results by a specific product_id
+    #     sortedBy str Sort criteria for results.
+    #     sorting str Ascending or descending order, by sortedBy
+    #     desc start_date date-time Filter results by minimum posted date
+    #     end_date date-time Filter results by maximum posted date
+    #     before str Used for pagination. Sets start cursor to before date.
+    #     after str Used for pagination. Sets end cursor to after date.
+    #     limit int required Limit on number of results to return.
+    #     100 status array of strings required
+    #     Array with order statuses to filter by.
+    #     
+    #     """
+    #     async with self._session.get(self._make_url(f"orders", params=kwargs)) as resp:
+    #         ret = await resp.json()
+    #         return [Order(**r) for r in ret]
 
-    async def create_order(self, **kwargs) -> None:
+    async def create_order(self,
+        profile_id: str,
+        type= "limit",
+        side= "buy",
+        product_id="BTC-USD",
+        stp= "dc",
+        stop= "loss",
+        stop_price: str = None,
+        price: float = None,
+        size= 10.,
+        funds: str = None, 
+        time_in_force= "GTC",
+        cancel_after= "min",
+        post_only=False
+    ) -> None:
         """ 
         kwargs:
-        profile_id str Filter results by a specific profile_id
-        product_id str Filter results by a specific product_id
-        sortedBy str Sort criteria for results.
-        sorting str Ascending or descending order, by sortedBy
-        desc start_date date-time Filter results by minimum posted date
-        end_date date-time Filter results by maximum posted date
-        before str Used for pagination. Sets start cursor to before date.
-        after str Used for pagination. Sets end cursor to after date.
-        limit int required Limit on number of results to return.
-        100 status array of strings required
-        Array with order statuses to filter by.
-        
-        e.g. 
+        profile_id (str) 
+            Filter results by a specific profile_id
+        product_id (str) 
+            Filter results by a specific product_id
+        sortedBy (str) enum 
+            Sort criteria for results.
+        sorting (str) enum 
+            Ascending or descending order, by sortedBy desc 
+        start_date date-time 
+            Filter results by minimum posted date
+        end_date date-time 
+            Filter results by maximum posted date
+        before str 
+            Used for pagination. Sets start cursor to before date.
+        after str 
+            Used for pagination. Sets end cursor to after date.
+        limit int required 
+            Limit on number of results to return. 100 
+        status (List[str]) required 
+            Array with order statuses to filter by.
+
+        """
         json = {
-            "profile_id": "default profile_id",
-            "type": "limit",
-            "side": "buy",
-            "stp": "dc",
-            "stop": "loss",
-            "time_in_force": "GTC",
-            "cancel_after": "min",
-            "post_only": "false"
+            "profile_id": profile_id,
+            "type": type,
+            "side": side,
+            "product_id": product_id,
+            "stp": stp,
+            "stop": stop,
+            "stop_price":  stop_price,
+            "price": price,
+            "size": size,
+            "funds": funds, 
+            "time_in_force": time_in_force,
+            "cancel_after": cancel_after,
+            "post_only": str(post_only)
         }
-
-        """
-        async with self._session.post(self._make_url(f"orders", json=kwargs)) as resp:
-            ret = await resp.json()
-            return 
+        async with self._session.post(self._make_url(f"orders", json=json)) as resp:
+            resp
+            # ret = await resp.json()
+            # return 
 
    
     async def get_currency(self, currency_id: str) -> Currency:
        async with self._session.get(self._make_url(f"currencies/{currency_id}")) as resp:
            ret = await resp.json()
            return Currency(**ret)
-
-    # async def create(self, title: str, text: str) -> Post:
-    #     async with self._session.post(
-    #         self._make_url("api"),
-    #         json={"owner": self._user, "title": title, "text": text},
-    #     ) as resp:
-    #         ret = await resp.json()
-    #         return Post(**ret["data"])
-    # async def delete(self, post_id: int) -> None:
-    #     async with self._session.delete(self._make_url(f"api/{post_id}")) as resp:
-    #         resp  # to make linter happy
-
-    #async def update(
-    #    self, post_id: int, title: Optional[str] = None, text: Optional[str] = None
-    #) -> Post:
-    #    json = {"editor": self._user}
-    #    if title is not None:
-    #        json["title"] = title
-    #    if text is not None:
-    #        json["text"] = text
-    #    async with self._session.patch(
-    #        self._make_url(f"api/{post_id}"), json=json
-    #    ) as resp:
-    #        ret = await resp.json()
-    #        return Post(**ret["data"])
 
