@@ -27,30 +27,31 @@ class PortfolioManager(ManagerBase):
         # Track active positions
         self._active_positions = {}  # type: ignore
 
-    def _setManager(self, manager: "StrategyManager") -> None:
+    def _set_manager(self, manager: "StrategyManager") -> None:
         """install manager"""
         self._manager = manager
 
-    def newPosition(self, trade: Trade, strategy: "Strategy") -> None:
+    def new_position(self, trade: Trade, strategy: "Strategy") -> None:
         """create and track a new position, or update the pnl/price of
         an existing position"""
-        self._portfolio.newPosition(trade, strategy)
+        self._portfolio.new_position(trade, strategy)
 
-    def updateStrategies(self, strategies: List["Strategy"]) -> None:
+    def update_strategies(self, strategies: List["Strategy"]) -> None:
         """update with list of strategies"""
-        self._portfolio.updateStrategies(strategies)
+        self._portfolio.update_strategies(strategies)
 
     def updateAccount(self, positions: List[Position]) -> None:
         """update positions tracking with a position from the exchange"""
-        self._portfolio.updateAccount(positions)
+        self._portfolio.update_account(positions)
 
     def updateCash(self, positions: List[Position]) -> None:
         """update cash positions from exchange"""
-        self._portfolio.updateCash(positions)
+        self._portfolio.update_cash(positions)
 
     # *********************
     # Risk Methods        *
     # *********************
+    @property
     def portfolio(self) -> Portfolio:
         return self._portfolio
 
@@ -64,7 +65,7 @@ class PortfolioManager(ManagerBase):
             strategy=strategy, instrument=instrument, exchange=exchange
         )
 
-    def priceHistory(self, instrument: Instrument = None) -> Union[dict, pd.DataFrame]:
+    def price_history(self, instrument: Instrument = None) -> Union[dict, pd.DataFrame]:
         if instrument:
             return pd.DataFrame(
                 self._prices[instrument], columns=[instrument.name, "when"]
@@ -77,54 +78,54 @@ class PortfolioManager(ManagerBase):
     # **********************
     # EventHandler methods *
     # **********************
-    async def onTrade(self, event: Event) -> None:
+    async def on_trade(self, event: Event) -> None:
         trade: Trade = event.target  # type: ignore
-        self._portfolio.onTrade(trade)
+        self._portfolio.on_trade(trade)
 
-    async def onCancel(self, event: Event) -> None:
+    async def on_cancel(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onOpen(self, event: Event) -> None:
+    async def on_open(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onFill(self, event: Event) -> None:
+    async def on_fill(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onChange(self, event: Event) -> None:
+    async def on_change(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onData(self, event: Event) -> None:
+    async def on_data(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onHalt(self, event: Event) -> None:
+    async def on_halt(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onContinue(self, event: Event) -> None:
+    async def on_continue(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onError(self, event: Event) -> None:
+    async def on_error(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onStart(self, event: Event) -> None:
+    async def on_start(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onExit(self, event: Event) -> None:
+    async def on_exit(self, event: Event) -> None:
         # TODO
         pass
 
     #########################
     # Order Entry Callbacks #
     #########################
-    async def onTraded(  # type: ignore[override]
+    async def on_traded(  # type: ignore[override]
         self, event: Event, strategy: Optional["Strategy"]
     ) -> None:
-        self._portfolio.onTraded(cast(Trade, event.target), cast("Strategy", strategy))
+        self._portfolio.on_traded(cast(Trade, event.target), cast("Strategy", strategy))

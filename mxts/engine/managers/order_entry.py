@@ -29,7 +29,7 @@ class StrategyManagerOrderEntryMixin(object):
     #####################
     # TODO ugly private method
 
-    async def _onBought(self, strategy: "Strategy", trade: Trade) -> None:
+    async def _on_bought(self, strategy: "Strategy", trade: Trade) -> None:
         # append to list of trades
         self._strategy_trades[strategy].append(trade)
 
@@ -41,7 +41,7 @@ class StrategyManagerOrderEntryMixin(object):
         self._alerted_events[ev] = (strategy, trade.my_order)
 
     # TODO ugly private method
-    async def _onSold(self, strategy: "Strategy", trade: Trade) -> None:
+    async def _on_sold(self, strategy: "Strategy", trade: Trade) -> None:
         # append to list of trades
         self._strategy_trades[strategy].append(trade)
 
@@ -54,7 +54,7 @@ class StrategyManagerOrderEntryMixin(object):
 
     # TODO ugly private method
 
-    async def _onReceived(self, strategy: "Strategy", order: Order) -> None:
+    async def _on_received(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.RECEIVED, target=order)
         self._engine.pushTargetedEvent(strategy, ev)
@@ -62,7 +62,7 @@ class StrategyManagerOrderEntryMixin(object):
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, order)
 
-    async def _onCanceled(self, strategy: "Strategy", order: Order) -> None:
+    async def _on_canceled(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.CANCELED, target=order)
         self._engine.pushTargetedEvent(strategy, ev)
@@ -70,7 +70,7 @@ class StrategyManagerOrderEntryMixin(object):
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, order)
 
-    async def _onRejected(self, strategy: "Strategy", order: Order) -> None:
+    async def _on_rejected(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.REJECTED, target=order)
         self._engine.pushTargetedEvent(strategy, ev)
@@ -79,7 +79,7 @@ class StrategyManagerOrderEntryMixin(object):
     # Order Entry Methods *
     # *********************
 
-    async def newOrder(self, strategy: "Strategy", order: Order) -> bool:
+    async def new_order(self, strategy: "Strategy", order: Order) -> bool:
         """helper method, defers to buy/sell"""
         # ensure has list
         if strategy not in self._strategy_open_orders:
@@ -113,11 +113,11 @@ class StrategyManagerOrderEntryMixin(object):
         await self._onRejected(strategy, order)
         return False
 
-    async def cancelOrder(self, strategy: "Strategy", order: Order) -> bool:
+    async def cancel_order(self, strategy: "Strategy", order: Order) -> bool:
         """cancel an open order"""
-        ret = await self._order_mgr.cancelOrder(strategy, order)
+        ret = await self._order_mgr.cancel_order(strategy, order)
         if ret:
-            await self._onCanceled(strategy, order)
+            await self._on_canceled(strategy, order)
             return ret
 
         # TODO something else?
@@ -153,7 +153,7 @@ class StrategyManagerOrderEntryMixin(object):
             ret = [r for r in ret if r.side == side]
         return ret
 
-    def pastOrders(
+    def past_orders(
         self,
         strategy: "Strategy",
         instrument: Instrument = None,
@@ -214,7 +214,7 @@ class StrategyManagerOrderEntryMixin(object):
     #########################
     # Order Entry Callbacks #
     #########################
-    async def onTraded(self, event: Event) -> None:
+    async def on_traded(self, event: Event) -> None:
         if event in self._alerted_events:
             strategy, order = self._alerted_events[event]
             # remove from list of open orders if done
@@ -226,9 +226,9 @@ class StrategyManagerOrderEntryMixin(object):
         else:
             strategy = None
 
-        await self._portfolio_mgr.onTraded(event, strategy)
-        await self._risk_mgr.onTraded(event, strategy)
-        await self._order_mgr.onTraded(event, strategy)
+        await self._portfolio_mgr.on_traded(event, strategy)
+        await self._risk_mgr.on_traded(event, strategy)
+        await self._order_mgr.on_traded(event, strategy)
 
     async def onReceived(self, event: Event) -> None:
         # synchronize state
@@ -238,11 +238,11 @@ class StrategyManagerOrderEntryMixin(object):
         else:
             strategy = None
 
-        await self._portfolio_mgr.onReceived(event, strategy)
-        await self._risk_mgr.onReceived(event, strategy)
-        await self._order_mgr.onReceived(event, strategy)
+        await self._portfolio_mgr.on_received(event, strategy)
+        await self._risk_mgr.on_received(event, strategy)
+        await self._order_mgr.on_received(event, strategy)
 
-    async def onRejected(self, event: Event) -> None:
+    async def on_rejected(self, event: Event) -> None:
         # synchronize state
         if event in self._alerted_events:
             strategy, order = self._alerted_events[event]
@@ -254,11 +254,11 @@ class StrategyManagerOrderEntryMixin(object):
         else:
             strategy = None
 
-        await self._portfolio_mgr.onRejected(event, strategy)
-        await self._risk_mgr.onRejected(event, strategy)
-        await self._order_mgr.onRejected(event, strategy)
+        await self._portfolio_mgr.on_rejected(event, strategy)
+        await self._risk_mgr.on_rejected(event, strategy)
+        await self._order_mgr.on_rejected(event, strategy)
 
-    async def onCanceled(self, event: Event) -> None:
+    async def on_canceled(self, event: Event) -> None:
         # synchronize state
         if event in self._alerted_events:
             strategy, order = self._alerted_events[event]
@@ -270,6 +270,6 @@ class StrategyManagerOrderEntryMixin(object):
         else:
             strategy = None
 
-        await self._portfolio_mgr.onCanceled(event, strategy)
-        await self._risk_mgr.onCanceled(event, strategy)
-        await self._order_mgr.onCanceled(event, strategy)
+        await self._portfolio_mgr.on_canceled(event, strategy)
+        await self._risk_mgr.on_canceled(event, strategy)
+        await self._order_mgr.on_canceled(event, strategy)

@@ -1,29 +1,29 @@
 import asyncio
-from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import inspect
-import os
-import os.path
-
 from typing import (
     Any,
     Awaitable,
     AsyncGenerator,
     Callable,
     Dict,
-    List as ListType,
+    List,
     Optional,
     Tuple,
 )
 
 from aiostream.stream import merge  # type: ignore
 
-from mxts.core.handler import EventHandler, PrintHandler
+from mxts.core.handler import EventHandler
 from mxts.data.data import Event, Error
-from mxts.config import TradingType, EventType, getStrategies, getExchanges
+from mxts.config import TradingType, EventType
 from mxts.exchange import Exchange
+from mxts.exchange.coinbase.client import CoinbaseClient
+from mxts.exchange.coinbase.coinbase_old import CoinbaseProExchange
 from mxts.strategy import Strategy
 
-from .managers import StrategyManager, OrderManager, PortfolioManager, RiskManager
+from .managers import StrategyManager, OrderManager, PortfolioManagers, RiskManager
 
 try:
     import uvloop  # type: ignore
@@ -50,13 +50,17 @@ class TradingEngine(object):
         # Load account information from exchanges
         self.load_accounts = config["load_accounts"]
 
+        self.executer = ThreadPoolExecutor()
+        
         # Load exchange instances
-        self.exchanges = get_exchanges(
-            config["exchanges"],
-            trading_type=self.trading_type,
-            verbose=self.verbose,
-        )
+        #self.exchanges = get_exchanges(
+        #    config["exchanges"],
+        #    trading_type=self.trading_type,
+        #    verbose=self.verbose,
+        #)
 
+        self.exchanges = [CoinbaseProExchange()]
+        
         # instantiate the Strategy Manager
         self.manager = StrategyManager(
             self, self.trading_type, self.exchanges, self.load_accounts
@@ -78,14 +82,16 @@ class TradingEngine(object):
         self._latest = datetime.fromtimestamp(0) if self.offline else datetime.now()
 
         # register internal management event handler before all strategy handlers
-        self.registerHandler(self.manager)
+        self.register_handler(self.manager)
 
         # install event handlers
-        self.strategies = get_strategies(config["strategy"])
-
+        # self.strategies = get_strategies(config["strategy"])
+        
+        self.strategies = []
+        
         for strategy in self.strategies:
             self.log.critical(f"Installing strategy: {strategy}")
-            self.registerHandler(strategy)
+            self.register_handler(strategy)
 
         # warn if no event handlers installed
         if not self.event_handlers:
@@ -94,13 +100,13 @@ class TradingEngine(object):
         # install print handler if verbose
         if self.verbose:
             self.log.critical("Installing print handler")
-            self.registerHandler(PrintHandler())
+            # self.register_handler(PrintHandler())
 
     @property
     def offline(self) -> bool:
         return self.trading_type in (TradingType.BACKTEST, TradingType.SIMULATION)
 
-    def registerHandler(self, handler: EventHandler) -> Optional[EventHandler]:
+    def register_handler(self, handler: EventHandler) -> Optional[EventHandler]:
         """register a handler and all callbacks that handler implements
         Args:
             handler (EventHandler): the event handler to register
@@ -119,8 +125,8 @@ class TradingEngine(object):
 
                 for cb in cbs:
                     if cb:
-                        self.registerCallback(type, cb, handler)
-            handler._setManager(self.manager)
+                        self.register_callback(type, cb, handler)
+            handler._set_manager(self.manager)
             return handler
         return None
 
@@ -130,9 +136,7 @@ class TradingEngine(object):
     #
     #    return _wrapper
 
-    
-
-    def registerCallback(
+    def register_callback(
         self, event_type: EventType, callback: Callable, handler: EventHandler = None
     ) -> bool:
         """register a callback for a given event type
@@ -144,25 +148,22 @@ class TradingEngine(object):
             value (bool): True if registered (new), else False
         """
         if (callback, handler) not in self._handler_subscriptions[event_type]:
-            if not asyncio.iscoroutinefunction(callback):
-                callback = self._make_async(callback)
+            # if not asyncio.iscoroutinefunction(callback):
+            #     callback = self._make_async(callback)
             self._handler_subscriptions[event_type].append((callback, handler))
             return True
         return False
 
-    def pushEvent(self, event: Event) -> None:
+    async def push_event(self, event: Event) -> None:
         """push non-exchange event into the queue"""
-        self._queued_events.append(event)
-
-    def pushTargetedEvent(self, strategy: Strategy, event: Event) -> None:
-        """push non-exchange event targeted to a specific strat into the queue"""
-        self._queued_targeted_events.append((strategy, event))
+        await self._event_queue.put(event)
 
     async def run(self) -> None:
         """run the engine"""
         # setup future queue
-        self._queued_events: Deque[Event] = asyncio.Queue()
-        self._queued_targeted_events: Deque[Tuple[Strategy, Event]] = asyncio.Queue()
+        self._event_queue: asyncio.Queue[Event] = asyncio.Queue()
+        
+        # self._queued_targeted_events: Deque[Tuple[Strategy, Event]] = asyncio.Queue()
 
         # await all connections
         await asyncio.gather(
@@ -173,7 +174,7 @@ class TradingEngine(object):
         )
 
         # send start event to all callbacks
-        await self.processEvent(Event(type=EventType.START, target=None))
+        await self.process_event(Event(type=EventType.START, target=None))
 
         # **************** #
         # Main event loop
@@ -189,23 +190,24 @@ class TradingEngine(object):
             async for event in stream:
                 
                 # tick exchange event to handlers
-                await self.processEvent(event)
+                await self.process_event(event)
 
                 self._latest = datetime.now()
 
                 # process any secondary events
-                while self._queued_events:
-                    event = self._queued_events.popleft()
-                    await self.processEvent(event)
+                while not self._event_queue.empty():
+                   
+                    event = await self._event_queue.get()
+                    await self.process_event(event)
 
                 # process any secondary callback-targeted events (e.g. order fills)
                 # these need to route to a specific callback,
                 # rather than all callbacks
-                while self._queued_targeted_events:
-                    strat, event = self._queued_targeted_events.popleft()
-
-                    # send to the generating strategy
-                    await self.processEvent(event, strat)
+                #while self._queued_targeted_events:
+                #    strat, event = self._queued_targeted_events.popleft()
+                #    
+                #    # send to the generating strategy
+                #    await self.process_event(event, strat)
 
                 # process any periodics
                 # periodic_result = await asyncio.gather(
@@ -221,12 +223,13 @@ class TradingEngine(object):
                 #    raise exceptions[0].exception()
 
         # Before engine shutdown, send an exit event
-        await self.processEvent(Event(type=EventType.EXIT, target=None))
+        await self.process_event(Event(type=EventType.EXIT, target=None))
 
-    async def processEvent(self, event: Event, strategy: Strategy = None) -> None:
+    async def process_event(self, event: Event, strategy: Strategy = None) -> None:
         """send an event to all registered event handlers
-        Arguments:
+        Args:
             event (Event): event to send
+            strategy (Strategy)
         """
         if event.type == EventType.HEARTBEAT:
             # ignore heartbeat
@@ -247,12 +250,13 @@ class TradingEngine(object):
                     EventType.CANCEL,
                     EventType.DATA,
                 )
-                and not self.manager.dataSubscriptions(handler, event)
+                and not self.manager.data_subscriptions(handler, event)
             ):
                 continue
 
             try:
-                await callback(event)
+                # await callback(event)
+                await self.event_loop.run_in_executor(self.executor, callback, event)
             except KeyboardInterrupt:
                 raise
             except SystemExit:
@@ -261,7 +265,7 @@ class TradingEngine(object):
                 if event.type == EventType.ERROR:
                     # don't infinite error
                     raise
-                await self.processEvent(
+                await self.process_event(
                     Event(
                         type=EventType.ERROR,
                         target=Error(
@@ -302,5 +306,5 @@ class TradingEngine(object):
 
         # send exit event to all callbacks
         asyncio.ensure_future(
-            self.processEvent(Event(type=EventType.EXIT, target=None))
+            self.process_event(Event(type=EventType.EXIT, target=None))
         )

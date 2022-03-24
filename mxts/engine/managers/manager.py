@@ -4,9 +4,9 @@ import traceback
 from typing import cast, List, TYPE_CHECKING
 
 from .order_entry import StrategyManagerOrderEntryMixin, OrderManager
-from .periodic import PeriodicManagerMixin
+# from .periodic import PeriodicManagerMixin
 from .portfolio import StrategyManagerPortfolioMixin, PortfolioManager
-from .risk import StrategyManagerRiskMixin, RiskManager
+# from .risk import StrategyManagerRiskMixin, RiskManager
 from .utils import StrategyManagerUtilsMixin
 
 from mxts.config import TradingType
@@ -19,13 +19,14 @@ if TYPE_CHECKING:
     from mxts.strategy import Strategy
     from mxts.engine import TradingEngine
 
+# TODO: rename file strat_mgr
 
 class StrategyManager(
     StrategyManagerOrderEntryMixin,
-    StrategyManagerRiskMixin,
+    # StrategyManagerRiskMixin,
     StrategyManagerPortfolioMixin,
     StrategyManagerUtilsMixin,
-    PeriodicManagerMixin,
+    # PeriodicManagerMixin,
     EventHandler,
 ):
     def __init__(
@@ -55,17 +56,17 @@ class StrategyManager(
 
         # pull from trading engine class
         self._portfolio_mgr = self._engine.portfolio_manager
-        self._risk_mgr = self._engine.risk_manager
+        # self._risk_mgr = self._engine.risk_manager
         self._order_mgr = self._engine.order_manager
 
         # install self for callbacks
-        self._portfolio_mgr._setManager(self)
-        self._risk_mgr._setManager(self)
-        self._order_mgr._setManager(self)
+        self._portfolio_mgr._set_manager(self)
+        # self._risk_mgr._set_manager(self)
+        self._order_mgr._set_manager(self)
 
         # add exchanges for order manager
         for exc in exchanges:
-            self._order_mgr.addExchange(exc)
+            self._order_mgr.add_exchange(exc)
 
         # initialize event subscriptions
         self._data_subscriptions = {}  # type: ignore
@@ -84,65 +85,70 @@ class StrategyManager(
     # ********* #
     # Accessors #
     # ********* #
-    def riskManager(self) -> RiskManager:
-        return self._risk_mgr
-
-    def orderManager(self) -> OrderManager:
+    #@property
+    #def risk_manager(self) -> RiskManager:
+    #    return self._risk_mgr
+    
+    @property
+    def order_manager(self) -> OrderManager:
         return self._order_mgr
 
-    def portfolioManager(self) -> PortfolioManager:
+    @property
+    def portfolio_manager(self) -> PortfolioManager:
         return self._portfolio_mgr
-
+    
+    @property
     def strategies(self) -> List["Strategy"]:
         return self._engine.strategies
-
-    def exchangeinstances(self) -> List[Exchange]:
+    
+    @property
+    def exchange_instances(self) -> List[Exchange]:
         return self._engine.exchanges
 
     # ********************* #
     # EventHandler methods *
     # **********************
-    async def onTrade(self, event: Event) -> None:
-        await self._portfolio_mgr.onTrade(event)
-        await self._risk_mgr.onTrade(event)
-        await self._order_mgr.onTrade(event)
+    async def on_trade(self, event: Event) -> None:
+        await self._portfolio_mgr.on_trade(event)
+        # await self._risk_mgr.on_trade(event)
+        await self._order_mgr.on_trade(event)
 
-    async def onOpen(self, event: Event) -> None:
-        await self._portfolio_mgr.onOpen(event)
-        await self._risk_mgr.onOpen(event)
-        await self._order_mgr.onOpen(event)
+    async def on_open(self, event: Event) -> None:
+        await self._portfolio_mgr.on_open(event)
+        # await self._risk_mgr.on_open(event)
+        await self._order_mgr.on_open(event)
 
-    async def onCancel(self, event: Event) -> None:
-        await self._portfolio_mgr.onCancel(event)
-        await self._risk_mgr.onCancel(event)
-        await self._order_mgr.onCancel(event)
+    async def on_cancel(self, event: Event) -> None:
+        await self._portfolio_mgr.on_cancel(event)
+        # await self._risk_mgr.on_cancel(event)
+        await self._order_mgr.on_cancel(event)
 
-    async def onChange(self, event: Event) -> None:
-        await self._portfolio_mgr.onChange(event)
-        await self._risk_mgr.onChange(event)
-        await self._order_mgr.onChange(event)
+    async def on_change(self, event: Event) -> None:
+        await self._portfolio_mgr.on_change(event)
+        # await self._risk_mgr.on_change(event)
+        await self._order_mgr.on_change(event)
 
-    async def onFill(self, event: Event) -> None:
-        await self._portfolio_mgr.onFill(event)
-        await self._risk_mgr.onFill(event)
-        await self._order_mgr.onFill(event)
+    async def on_fill(self, event: Event) -> None:
+        await self._portfolio_mgr.on_fill(event)
+        # await self._risk_mgr.on_fill(event)
+        await self._order_mgr.on_fill(event)
 
     async def onHalt(self, event: Event) -> None:
-        await self._portfolio_mgr.onHalt(event)
-        await self._risk_mgr.onHalt(event)
-        await self._order_mgr.onHalt(event)
+        await self._portfolio_mgr.on_halt(event)
+        # await self._risk_mgr.on_halt(event)
+        await self._order_mgr.on_halt(event)
 
     async def onContinue(self, event: Event) -> None:
-        await self._portfolio_mgr.onContinue(event)
-        await self._risk_mgr.onContinue(event)
-        await self._order_mgr.onContinue(event)
+        await self._portfolio_mgr.on_continue(event)
+        # await self._risk_mgr.on_continue(event)
+        await self._order_mgr.on_continue(event)
 
-    async def onData(self, event: Event) -> None:
-        await self._portfolio_mgr.onData(event)
-        await self._risk_mgr.onData(event)
-        await self._order_mgr.onData(event)
+    async def on_data(self, event: Event) -> None:
+        await self._portfolio_mgr.on_data(event)
+        # await self._risk_mgr.on_data(event)
+        await self._order_mgr.on_data(event)
 
-    async def onError(self, event: Event) -> None:
+    async def on_error(self, event: Event) -> None:
         print("\n\nA Fatal Error has occurred:")
         error = cast(Error, event.target)
         traceback.print_exception(
@@ -152,26 +158,26 @@ class StrategyManager(
         )
         sys.exit(1)
 
-    async def onExit(self, event: Event) -> None:
-        await self._portfolio_mgr.onExit(event)
-        await self._risk_mgr.onExit(event)
-        await self._order_mgr.onExit(event)
+    async def on_exit(self, event: Event) -> None:
+        await self._portfolio_mgr.on_exit(event)
+        # await self._risk_mgr.on_exit(event)
+        await self._order_mgr.on_exit(event)
 
-    async def onStart(self, event: Event) -> None:
+    async def on_start(self, event: Event) -> None:
         # Initialize strategies
-        self._portfolio_mgr.updateStrategies(self.strategies())
+        self._portfolio_mgr.update_strategies(self.strategies())
 
         # Initialize positions
-        for exchange in self.exchangeinstances():
+        for exch in self.exchange_instances:
             if self._load_accounts:
-                acc = await exchange.accounts()
-                self._portfolio_mgr.updateAccount(acc)
+                acc = await exch.accounts()
+                self._portfolio_mgr.update_account(acc)
 
-            acc = await exchange.balance()
-            self._portfolio_mgr.updateCash(acc)
-            self._risk_mgr.updateCash(acc)
+            acc = await exch.balance()
+            self._portfolio_mgr.update_cash(acc)
+            # self._risk_mgr.update_cash(acc)
 
-        # Defer to sub onStarts
-        await self._portfolio_mgr.onStart(event)
-        await self._risk_mgr.onStart(event)
-        await self._order_mgr.onStart(event)
+        # Defer to sub on_starts
+        await self._portfolio_mgr.on_start(event)
+        # await self._risk_mgr.on_start(event)
+        await self._order_mgr.on_start(event)

@@ -10,40 +10,40 @@ if TYPE_CHECKING:
 
 class ManagerBase(EventHandler):
     @abstractmethod
-    def _setManager(self, mgr: "StrategyManager") -> None:
+    def _set_manager(self, mgr: "StrategyManager") -> None:
         """set the root manager"""
 
-    async def onBought(  # type: ignore[override]
+    async def on_bought(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order bought"""
         pass
 
-    async def onSold(  # type: ignore[override]
+    async def on_sold(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order sold"""
         pass
 
-    async def onTraded(  # type: ignore[override]
+    async def on_traded(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order bought or sold"""
         pass
 
-    async def onReceived(  # type: ignore[override]
+    async def on_received(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order received"""
         pass
 
-    async def onRejected(  # type: ignore[override]
+    async def on_rejected(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order rejected"""
         pass
 
-    async def onCanceled(  # type: ignore[override]
+    async def on_canceled(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         """Called on my order canceled"""

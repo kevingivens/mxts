@@ -48,13 +48,13 @@ class Portfolio(object):
     # *****************
     # Manager Methods #
     # *****************
-    def updateStrategies(self, strategies: List) -> None:
+    def update_strategies(self, strategies: List) -> None:
         """update with list of strategies"""
         self._strategies.extend([s.name() for s in strategies])
         for strategy in self._strategies:
             self._active_positions_by_strategy[strategy] = {}
 
-    def updateAccount(self, positions: List[Position]) -> None:
+    def update_account(self, positions: List[Position]) -> None:
         """update positions tracking with a position from the exchange"""
         options = {i: s for i, s in enumerate(self._strategies)}
 
@@ -99,11 +99,11 @@ class Portfolio(object):
                     position.instrument
                 ] = position
 
-    def updateCash(self, positions: List[Position]) -> None:
+    def update_cash(self, positions: List[Position]) -> None:
         """update cash positions from exchange"""
         self._cash.extend(positions)
 
-    def newPosition(self, trade: Trade, strategy: "Strategy") -> None:
+    def new_position(self, trade: Trade, strategy: "Strategy") -> None:
         my_order: Order = trade.my_order
         if (
             trade.instrument in self._active_positions_by_instrument
@@ -199,7 +199,7 @@ class Portfolio(object):
                 self._active_positions_by_strategy[strategy.name()][trade.instrument]
             )
 
-    def onTrade(self, trade: Trade) -> None:
+    def on_trade(self, trade: Trade) -> None:
         if trade.instrument in self._active_positions_by_instrument:
             for pos in self._active_positions_by_instrument[trade.instrument]:
                 pos.unrealizedPnl = (
@@ -216,8 +216,8 @@ class Portfolio(object):
             self._prices[trade.instrument].append((trade.price, trade.timestamp))
             self._trades[trade.instrument].append(trade)
 
-    def onTraded(self, trade: Trade, strategy: "Strategy") -> None:
-        self.newPosition(trade, strategy)
+    def on_traded(self, trade: Trade, strategy: "Strategy") -> None:
+        self.new_position(trade, strategy)
 
     # ******************
     # Strategy Methods #
@@ -244,7 +244,7 @@ class Portfolio(object):
             ret[position.instrument] = position
         return list(ret.values())
 
-    def allPositions(
+    def all_positions(
         self, instrument: Instrument = None, exchange: ExchangeType = None
     ) -> List[Position]:
         ret = {}
@@ -266,7 +266,7 @@ class Portfolio(object):
                     ret[position.instrument] += position
         return list(ret.values())
 
-    def priceHistory(self, instrument: Instrument = None) -> Union[pd.DataFrame, dict]:
+    def price_history(self, instrument: Instrument = None) -> Union[pd.DataFrame, dict]:
         if instrument:
             return pd.DataFrame(
                 self._prices[instrument], columns=[instrument.name, "when"]
