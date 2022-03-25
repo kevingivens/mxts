@@ -153,6 +153,22 @@ class CoinbaseClient:
     #     limit int required Limit on number of results to return.
     #     100 status array of strings required
     #     Array with order statuses to filter by.
+    #  sortedBy (str) enum 
+    #            Sort criteria for results.
+    #        sorting (str) enum 
+    #            Ascending or descending order, by sortedBy desc 
+    #        start_date date-time 
+    #            Filter results by minimum posted date
+    #        end_date date-time 
+    #            Filter results by maximum posted date
+    #        before str 
+    #            Used for pagination. Sets start cursor to before date.
+    #        after str 
+    #            Used for pagination. Sets end cursor to after date.
+    #        limit int required 
+    #            Limit on number of results to return. 100 
+    #        status (List[str]) required 
+    #            Array with order statuses to filter by.
     #     
     #     """
     #     async with self._session.get(self._make_url(f"orders", params=kwargs)) as resp:
@@ -160,64 +176,90 @@ class CoinbaseClient:
     #         return [Order(**r) for r in ret]
 
     async def create_order(self,
-        profile_id: str,
-        type= "limit",
-        side= "buy",
-        product_id="BTC-USD",
-        stp= "dc",
-        stop= "loss",
+        profile_id: str = None,
+        type: TradeType = TradeType.limit,
+        side: TradeSide = TradeSide.buy,
+        product_id: str ="BTC-USD",
+        stp: Stp = Stp.dc,
+        stop: Stop = Stop.loss,
         stop_price: str = None,
         price: float = None,
         size= 10.,
         funds: str = None, 
-        time_in_force= "GTC",
-        cancel_after= "min",
+        time_in_force: TimeInForce = TimeInForce.GTC,
+        cancel_after: CancelAfter = CancelAfter.min,
         post_only=False
     ) -> None:
         """ 
-        kwargs:
-        profile_id (str) 
-            Filter results by a specific profile_id
-        product_id (str) 
-            Filter results by a specific product_id
-        sortedBy (str) enum 
-            Sort criteria for results.
-        sorting (str) enum 
-            Ascending or descending order, by sortedBy desc 
-        start_date date-time 
-            Filter results by minimum posted date
-        end_date date-time 
-            Filter results by maximum posted date
-        before str 
-            Used for pagination. Sets start cursor to before date.
-        after str 
-            Used for pagination. Sets end cursor to after date.
-        limit int required 
-            Limit on number of results to return. 100 
-        status (List[str]) required 
-            Array with order statuses to filter by.
+        Args:
+            profile_id (str) Optional 
+                Filter results by a specific profile_id
+            type (str) Optional
+                limit, market, stop
+            side (str) Required
+                buy, sell
+            product_id (str) Required
+                Filter results by a specific product_id
+            stp (str) Optional
+                dc, co, cn, cb
+            stop (str) Optional
+                loss, entry
+            stop_price (str) Optional
+                Price threshold at which a stop order will be placed on the book
+            price (str) Optional
+                Price per unit of cryptocurrency - required for limit/stop orders
+            size (str) Optional
+                Amount of base currency to buy or sell - required for limit/stop orders and market sells
+            funds (str) Optional
+                Amount of quote currency to buy - required for market buys
+            time_in_force (str) Optional
+                GTC, GTT, IOC, FOK
+            cancel_after (str) Optional
+                min, hour, day
+            post_only (Bool) Optional
+                If true, order will only execute as a maker order
+            client_oid (str) Optional 
+                Order ID selected by the user or the frontend client to identify their order
 
         """
         json = {
-            "profile_id": profile_id,
             "type": type,
             "side": side,
             "product_id": product_id,
             "stp": stp,
             "stop": stop,
             "stop_price":  stop_price,
-            "price": price,
-            "size": size,
+            "price": str(price),
+            "size": str(size),
             "funds": funds, 
             "time_in_force": time_in_force,
             "cancel_after": cancel_after,
             "post_only": str(post_only)
         }
-        async with self._session.post(self._make_url(f"orders", json=json)) as resp:
+        if profile_id is not None:
+            json["profile_id"] = profile_id
+        async with self._session.post(self._make_url(f"orders"), json=json) as resp:
+            ret = await resp.json()
+            return ret
+    
+    async def cancel_all_orders(self, profile_id: str, product_id: str) -> None:
+        params = {
+            "profile_id": profile_id,
+            "product_id": product_id,
+        }
+        async with self._session.delete(self._make_url(f"orders"), params=params) as resp:
             resp
-            # ret = await resp.json()
-            # return 
-
+    
+    async def cancel_order(self, profile_id: str, order_id: str) -> None:
+        params = {
+            "profile_id": profile_id
+        }
+        async with self._session.delete(self._make_url(f"orders/{order_id}"), params=params) as resp:
+            resp
+    
+    async def get_order(self, order_id: str) -> None:
+        async with self._session.get(self._make_url(f"orders/{order_id}")) as resp:
+            resp
    
     async def get_currency(self, currency_id: str) -> Currency:
        async with self._session.get(self._make_url(f"currencies/{currency_id}")) as resp:
