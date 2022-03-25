@@ -18,9 +18,9 @@ from aiostream.stream import merge  # type: ignore
 from mxts.core.handler import EventHandler
 from mxts.data.data import Event, Error
 from mxts.config import TradingType, EventType
+from mxts.config.config import Settings
 from mxts.exchange import Exchange
-from mxts.exchange.coinbase.client import CoinbaseClient
-from mxts.exchange.coinbase.coinbase_old import CoinbaseProExchange
+from mxts.exchange.coinbase.coinbase import CoinbaseProExchange
 from mxts.strategy import Strategy
 
 from .managers import StrategyManager, OrderManager, PortfolioManagers, RiskManager
@@ -36,20 +36,21 @@ class TradingEngine(object):
     
     """
 
-    def __init__(self, **config: dict) -> None:
+    def __init__(self, config: Settings) -> None:
 
         # run in verbose mode (print all events)
-        self.verbose = config["verbose"]
+        self.verbose = config.verbose
 
         # Trading type
-        self.trading_type = config["trading_type"]
+        self.trading_type = config.trading_type
 
         # Engine heartbeat interval in seconds 
-        self.heartbeat = config["heartbeat"]
+        self.heartbeat = config.heartbeat
 
         # Load account information from exchanges
-        self.load_accounts = config["load_accounts"]
+        self.load_accounts = config.load_accounts
 
+        # TODO replace with Ray
         self.executer = ThreadPoolExecutor()
         
         # Load exchange instances
@@ -59,10 +60,11 @@ class TradingEngine(object):
         #    verbose=self.verbose,
         #)
 
+        # TODO: configure exchange in Settings Object
         self.exchanges = [CoinbaseProExchange()]
         
         # instantiate the Strategy Manager
-        self.manager = StrategyManager(
+        self.strat_mgr = StrategyManager(
             self, self.trading_type, self.exchanges, self.load_accounts
         )
 
@@ -82,12 +84,14 @@ class TradingEngine(object):
         self._latest = datetime.fromtimestamp(0) if self.offline else datetime.now()
 
         # register internal management event handler before all strategy handlers
-        self.register_handler(self.manager)
+        self.register_handler(self.strat_mgr)
 
         # install event handlers
         # self.strategies = get_strategies(config["strategy"])
         
-        self.strategies = []
+        self.strategies = ()
+
+        self.event_handlers = ()
         
         for strategy in self.strategies:
             self.log.critical(f"Installing strategy: {strategy}")
@@ -113,6 +117,7 @@ class TradingEngine(object):
         Returns:
             value (EventHandler or None): event handler if its new, else None
         """
+        # TODO: check if this is necessary, probably not
         if handler not in self.event_handlers:
             # append to handler list
             self.event_handlers.append(handler)
@@ -126,7 +131,7 @@ class TradingEngine(object):
                 for cb in cbs:
                     if cb:
                         self.register_callback(type, cb, handler)
-            handler._set_manager(self.manager)
+            handler._set_manager(self.strat_mgr)
             return handler
         return None
 
@@ -213,7 +218,7 @@ class TradingEngine(object):
                 # periodic_result = await asyncio.gather(
                 #     *(
                 #         asyncio.create_task(p.execute(self._latest))
-                #         for p in self.manager.periodics()
+                #         for p in self.strat_mgr.periodics()
                 #s         if p.expires(self._latest)
                 #     )
                 # )
@@ -237,7 +242,7 @@ class TradingEngine(object):
 
         for callback, handler in self._handler_subscriptions[event.type]:
             # TODO make cleaner? move to somewhere not in critical path?
-            if strategy is not None and (handler not in (strategy, self.manager)):
+            if strategy is not None and (handler not in (strategy, self.strat_mgr)):
                 continue
 
             # TODO make cleaner? move to somewhere not in critical path?
@@ -250,7 +255,7 @@ class TradingEngine(object):
                     EventType.CANCEL,
                     EventType.DATA,
                 )
-                and not self.manager.data_subscriptions(handler, event)
+                and not self.strat_mgr.data_subscriptions(handler, event)
             ):
                 continue
 
@@ -276,7 +281,7 @@ class TradingEngine(object):
                         ),
                     )
                 )
-                await asyncio.sleep(1)
+                await asyncio.sleep(1) # TODO factor this term out
 
     async def tick(self) -> AsyncGenerator:
         """helper method execute periodically in absenceof market data"""

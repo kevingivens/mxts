@@ -17,9 +17,9 @@ from .data import *
 class CoinbaseClient:
     def __init__(self, base_url: URL, **kwargs) -> None:
         self._base_url = base_url
-        self._cb_secret = kwargs.get("cb_secret")
-        self._cb_key = kwargs.get("cb_key")
-        self._cb_passphrase = kwargs.get("cb_passphrase")
+        self._user_secret = kwargs.get("secret")
+        self._user_key = kwargs.get("key")
+        self._user_passphrase = kwargs.get("passphrase")
         self._session = aiohttp.ClientSession(raise_for_status=True)
 
     async def close(self) -> None:
@@ -50,15 +50,15 @@ class CoinbaseClient:
         """
         timestamp = str(time.time())
         message = timestamp + method + url + body
-        hmac_key = base64.b64decode(self._cb_secret)
+        hmac_key = base64.b64decode(self._user_secret)
         signature = hmac.new(hmac_key, message.encode(), hashlib.sha256)
         signature_b64 = base64.b64encode(signature.digest()).decode()
    
         headers = {
            "CB-ACCESS-SIGN": signature_b64,
            "CB-ACCESS-TIMESTAMP": timestamp,
-           "CB-ACCESS-KEY": self._cb_key,
-           "CB-ACCESS-PASSPHRASE": self._cb_passphrase,
+           "CB-ACCESS-KEY": self._user_key,
+           "CB-ACCESS-PASSPHRASE": self._user_passphrase,
            "Content-Type": "application/json",
         }
        
@@ -153,7 +153,7 @@ class CoinbaseClient:
     #     limit int required Limit on number of results to return.
     #     100 status array of strings required
     #     Array with order statuses to filter by.
-    #  sortedBy (str) enum 
+    #        sortedBy (str) enum 
     #            Sort criteria for results.
     #        sorting (str) enum 
     #            Ascending or descending order, by sortedBy desc 

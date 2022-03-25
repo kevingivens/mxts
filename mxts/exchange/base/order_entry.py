@@ -1,10 +1,11 @@
 from abc import ABCMeta
 from typing import List, TYPE_CHECKING
 
-from mxts.core import Order, Position
+if TYPE_CHECKING:
+    from mxts.core import Order, Position
 
 
-class _OrderEntry(metaclass=ABCMeta):
+class OrderEntry():
     """internal only class to represent the rest-sink
     side of a data source"""
 

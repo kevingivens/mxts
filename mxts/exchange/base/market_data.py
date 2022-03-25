@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from mxts import Instrument, Event
 
 
-class _MarketData(metaclass=ABCMeta):
+class MarketData():
     """internal only class to represent the streaming-source
     side of a data source"""
 
