@@ -1,7 +1,7 @@
 from datetime import datetime
 from traceback import format_exception
 from typing import Any, Callable, Dict, Union
-from ...config import DataType
+from ..config.enums import DataType
 
 
 class Error(object):

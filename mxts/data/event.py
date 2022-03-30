@@ -22,7 +22,7 @@ class Event(object):
         self.target = target
 
     def __repr__(self) -> str:
-        return f"Event(type={self.type}, target={self.target})"
+        return f"<Event(type={self.type}, target={self.target})>"
 
     def json(self, flat: bool = False) -> Mapping[str, Union[str, int, float, dict]]:
         if flat:
