@@ -5,8 +5,8 @@ if TYPE_CHECKING:
     from mxts.core import Order, Position
 
 
-class OrderEntry():
-    """internal only class to represent the rest-sink
+class OrderEntry:
+    """mixin class to represent the rest-sink
     side of a data source"""
 
     async def accounts(self) -> List[Position]:  # TODO List[Account] ?

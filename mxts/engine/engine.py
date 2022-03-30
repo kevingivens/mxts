@@ -16,7 +16,7 @@ from typing import (
 from aiostream.stream import merge  # type: ignore
 
 from mxts.core.handler import EventHandler
-from mxts.data.data import Event, Error
+from mxts.data import Event, Error
 from mxts.config import TradingType, EventType
 from mxts.config.config import Settings
 from mxts.exchange import Exchange

@@ -1,7 +1,9 @@
 from abc import abstractmethod
 from typing import List
 
-from mxts.core import ExchangeType, Instrument
+#from mxts.config.enums import ExchangeType 
+
+from mxts.data.instrument import Instrument
 
 from .base.market_data import _MarketData
 from .base.order_entry import _OrderEntry
@@ -15,11 +17,11 @@ class Exchange(_MarketData, _OrderEntry):
         exchanges can be queried for data, or send data
     """
 
-    def __init__(self, exchange: ExchangeType) -> None:
-        self._exchange: ExchangeType = exchange
+    #def __init__(self, exchange: ExchangeType) -> None:
+    #    self._exchange: ExchangeType = exchange
 
-    def exchange(self) -> ExchangeType:
-        return self._exchange
+    #def exchange(self) -> ExchangeType:
+    #    return self._exchange
 
     @abstractmethod
     async def connect(self) -> None:

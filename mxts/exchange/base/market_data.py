@@ -1,12 +1,15 @@
 from abc import ABCMeta
 from typing import AsyncIterator, List, Optional, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from mxts import Instrument, Event
+from mxts.data import Instrument, Event
+
+#if TYPE_CHECKING:
+#    from mxts.data.instrument import Instrument
+#    from mxts.data.event import Event
 
 
-class MarketData():
-    """internal only class to represent the streaming-source
+class MarketData:
+    """mixin class to represent the streaming-source
     side of a data source"""
 
     async def instruments(self) -> List[Instrument]:
