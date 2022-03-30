@@ -10,4 +10,4 @@ from .enums import (
     ExitRoutine,
 )
 
-from .config import OandaConfig, CoinbaseConfig
+from .config import Settings

@@ -1,9 +1,33 @@
 from typing import Optional
 
-from pydantic import Field, BaseModel, PositiveInt
+from pydantic import BaseSettings, BaseModel, Field, PositiveInt
 
 from .enums import DateTimeFormat, TradingType, DateTimeFormat
 
+
+class Settings(BaseSettings):
+    verbose: bool = True
+    trading_type: TradingType = TradingType.SANDBOX
+    heartbeat: int = 10
+    load_accounts: bool = True
+
+    cb_key: str = Field(..., env='COINBASE_KEY')
+    cb_secret: str = Field(..., env='COINBASE_SECRET')
+    cb_passphrase: str = Field(..., env='COINBASE_PASSPHRASE')
+    
+    #class Config:
+    #   """Loads the dotenv file."""
+    #   env_file: str = ".env"
+
+    #class Config:
+    #    env_prefix = 'my_prefix_'  # defaults to no prefix, i.e. ""
+    #    fields = {
+    #        'auth_key': {
+    #            'env': 'my_auth_key',
+    #        },
+    #    }
+
+   
 class GlobalConfig(BaseModel):
     """Global configurations"""
 
@@ -101,52 +125,43 @@ class OandaConfig(GlobalConfig):
     max_simultaneous_connections: PositiveInt = 10
 
 
-class CoinbaseConfig(GlobalConfig):
-    """ Coinbase session config object """
-
-    # rest_host: The hostname of the REST server
-    rest_host = 'api.pro.coinbase.com'
-    
-    # rest_port: The port of the REST server
-    rest_port = 443
-    
-    # rest_scheme: The scheme of the connection to rest server.
-    rest_scheme = 'https'
-
-    #  stream_host: The hostname of the WS server
-    stream_host = 'ws-feed.pro.coinbase.com'
-    
-    # stream_port: The port of the WS server
-    stream_port: PositiveInt = None
-    
-    #  stream_scheme: The scheme of the connection to the stream server.
-    stream_scheme = 'wss:'
-
-    # stream_timeout: Period to wait for an new json object during streaming
-    # stream_timeout: PositiveInt = 60
-
-    satoshis: Optional[bool] = False    
- 
-    # rest_sandbox = "https://api-public.sandbox.pro.coinbase.com"
-    
-    # ws_sandbox = "wss://ws-feed-public.sandbox.pro.coinbase.com"
-    
-    # subscription : Dict[str, Union[str, List[str]]] = {
-    #     "type": "subscribe",
-    #     "product_ids": [],
-    #     "channels": ["user", "heartbeat"],
-    # }
-    
-    # exchange: ExchangeType
-    
-    api_key: str
-    
-    secret_key: str
-    
-    passphrase: str
-    
-    
-
-
-
+#class CoinbaseConfig(GlobalConfig):
+#    """ Coinbase session config object """
+#
+#    # rest_host: The hostname of the REST server
+#    rest_host = 'api.pro.coinbase.com'
+#    
+#    # rest_port: The port of the REST server
+#    rest_port = 443
+#    
+#    # rest_scheme: The scheme of the connection to rest server.
+#    rest_scheme = 'https'
+#
+#    #  stream_host: The hostname of the WS server
+#    stream_host = 'ws-feed.pro.coinbase.com'
+#    
+#    # stream_port: The port of the WS server
+#    stream_port: PositiveInt = None
+#    
+#    #  stream_scheme: The scheme of the connection to the stream server.
+#    stream_scheme = 'wss:'
+#
+#    # stream_timeout: Period to wait for an new json object during streaming
+#    # stream_timeout: PositiveInt = 60
+# 
+#    # rest_sandbox = "https://api-public.sandbox.pro.coinbase.com"
+#    
+#    # ws_sandbox = "wss://ws-feed-public.sandbox.pro.coinbase.com"
+#    
+#    # subscription : Dict[str, Union[str, List[str]]] = {
+#    #     "type": "subscribe",
+#    #     "product_ids": [],
+#    #     "channels": ["user", "heartbeat"],
+#    # }
+#    
+#    # exchange: ExchangeType
+#    
+#    key: str
+#    secret: str
+#    passphrase: str
 
