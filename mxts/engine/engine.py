@@ -77,7 +77,7 @@ class TradingEngine(object):
 
         # setup subscriptions
         self._handler_subscriptions: Dict[EventType, List] = {
-            m: [] for m in EventType.__members__.values()
+            e: [] for e in EventType
         }
 
         # setup `now` handler for backtest
@@ -123,14 +123,14 @@ class TradingEngine(object):
             self.event_handlers.append(handler)
 
             # register callbacks for event types
-            for type in EventType.__members__.values():
+            for e in EventType:
                 # get callback or callback tuple
                 # could be none if not implemented
-                cbs = handler.callback(type)
+                cbs = handler.callback(e)
 
                 for cb in cbs:
                     if cb:
-                        self.register_callback(type, cb, handler)
+                        self.register_callback(e, cb, handler)
             handler._set_manager(self.strat_mgr)
             return handler
         return None
@@ -281,7 +281,7 @@ class TradingEngine(object):
                         ),
                     )
                 )
-                await asyncio.sleep(1) # TODO factor this term out
+                await asyncio.sleep(1) # TODO make this configurable
 
     async def tick(self) -> AsyncGenerator:
         """helper method execute periodically in absenceof market data"""

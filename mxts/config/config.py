@@ -1,16 +1,26 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseSettings, BaseModel, Field, PositiveInt
 
-from .enums import DateTimeFormat, TradingType, DateTimeFormat
+from .enums import DateTimeFormat, TradingType, DateTimeFormat, ExchangeType
 
 
 class Settings(BaseSettings):
-    verbose: bool = True
-    trading_type: TradingType = TradingType.SANDBOX
-    heartbeat: int = 10
-    load_accounts: bool = True
+    # run in verbose mode (print all events)
+    verbose = True
 
+    # Trading type
+    trading_type: TradingType = TradingType.SANDBOX
+    
+    # Engine heartbeat interval in seconds 
+    heartbeat: PositiveInt = 10
+
+    # Load account information from exchanges
+    load_accounts = True
+
+    exchanges: List[ExchangeType] = [ExchangeType.COINBASE]
+
+    # Coinbase encryption data
     cb_key: str = Field(..., env='COINBASE_KEY')
     cb_secret: str = Field(..., env='COINBASE_SECRET')
     cb_passphrase: str = Field(..., env='COINBASE_PASSPHRASE')
@@ -28,39 +38,7 @@ class Settings(BaseSettings):
     #    }
 
    
-class GlobalConfig(BaseModel):
-    """Global configurations"""
-
-    # These variables will be loaded from the .env file. However, if
-    # there is a shell environment variable having the same name,
-    # that will take precedence.
-
-    # run in verbose mode (print all events)
-    verbose = True
-
-    # Trading type
-    trading_type: TradingType = TradingType.BACKTEST
-    
-    # Engine heartbeat interval in seconds 
-    heartbeat: PositiveInt = 10
-
-    # Load account information from exchanges
-    load_accounts = True
-
-    exchanges = []
-
-    # define global variables with the Field class
-    ENV_STATE: Optional[str] = Field(None, env="ENV_STATE")
-
-    # environment specific variables do not need the Field class
-    # HOST: Optional[str] = None
-
-    class Config:
-        """Loads the dotenv file."""
-        env_file: str = ".env"
-
-
-class OandaConfig(GlobalConfig):
+class OandaSettings(Settings):
     """ OANDA session config object """
     #  token: User generated token from the online account configuration page
     # token: str = None

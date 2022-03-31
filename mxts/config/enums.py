@@ -33,6 +33,11 @@ class OptionType(BaseEnum):
     PUT = "PUT"
 
 
+class ExchangeType(BaseEnum):
+    COINBASE = 'COINBASE'
+    OANDA = 'OANDA'
+
+
 class EventType(BaseEnum):
     # Heartbeat event
     HEARTBEAT = "HEARTBEAT"
