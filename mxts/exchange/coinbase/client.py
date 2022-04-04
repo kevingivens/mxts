@@ -123,6 +123,11 @@ class CoinbaseClient:
     #    async with self._session.post(self._make_url("conversions"), json=kwargs) as resp:
     #         ret = await resp.json()
 
+    async def get_fees(self) -> Fees:
+        async with self._session.get(self._make_url(f"fees")) as resp:
+            ret = await resp.json()
+            return Fees(**ret)
+
     async def get_ticker(self, product_id: str) -> Ticker:
         async with self._session.get(self._make_url(f"products/{product_id}/ticker")) as resp:
             ret = await resp.json()
@@ -159,7 +164,12 @@ class CoinbaseClient:
             ret = await resp.json()
             return [Candle(**r) for r in ret]
 
-    # async def get_fills(self, **kwargs) -> List[Fill]:
+    async def get_products(self) -> List[Product]:
+        async with self._session.get(self._make_url(f"products")) as resp:
+            ret = await resp.json()
+            return [Product(**r) for r in ret]
+
+    # async def get_fills(self, **kwargs) -> Lists[Fill]:
     #     """ 
     #     kwargs:
     #         order_id str

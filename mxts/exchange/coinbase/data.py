@@ -77,3 +77,27 @@ class Currency(BaseModel):
 
 class LedgerEntity(BaseModel):
     type: EntryType = None
+
+
+class Product(BaseModel):
+    id: str
+    base_currency : str
+    quote_currency : str
+    base_min_size : float
+    base_max_size : float
+    quote_increment : float
+    base_increment: float
+    display_name: str
+    min_market_funds: float
+    max_market_funds: float
+    margin_enabled: bool
+    fx_stablecoin: bool
+    max_slippage_percentage: float
+    post_only: bool
+    limit_only: bool
+    cancel_only: bool
+    trading_disabled: bool
+    status: str
+    status_message: str
+    auction_mode: bool
+
