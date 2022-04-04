@@ -5,7 +5,7 @@ from mxts.core.handler import EventHandler
 
 
 if TYPE_CHECKING:
-    from .manager import StrategyManager
+    from .strategy import StrategyManager
 
 
 class ManagerBase(EventHandler):

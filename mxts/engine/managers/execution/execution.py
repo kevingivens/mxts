@@ -8,7 +8,7 @@ from ..base import ManagerBase
 
 if TYPE_CHECKING:
     from mxts.strategy import Strategy
-    from ..manager import StrategyManager
+    from ..strategy import StrategyManager
 
 
 class OrderManager(ManagerBase):

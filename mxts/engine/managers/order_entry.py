@@ -13,12 +13,12 @@ if TYPE_CHECKING:
     from mxts.strategy import Strategy
 
 
-class StrategyManagerOrderEntryMixin(object):
+class StratMgrOrderEntryMixin(object):
     _engine: "TradingEngine"
     _exchanges: List[Exchange]
-    _strategy_trades: dict
-    _strategy_open_orders: dict
-    _strategy_past_orders: dict
+    _trades: dict
+    _open_orders: dict
+    _closed_orders: dict
     _alerted_events: dict
     _risk_mgr: RiskManager
     _order_mgr: OrderManager
@@ -27,27 +27,26 @@ class StrategyManagerOrderEntryMixin(object):
     #####################
     # Order Entry Hooks #
     #####################
-    # TODO ugly private method
-
+    
+    # TODO fix ugly private method
     async def _on_bought(self, strategy: "Strategy", trade: Trade) -> None:
         # append to list of trades
-        self._strategy_trades[strategy].append(trade)
+        self._trades[strategy].append(trade)
 
         # push event to loop
         ev = Event(type=Event.Types.BOUGHT, target=trade)
-        self._engine.pushTargetedEvent(strategy, ev)
+        self._engine.push_targeted_event(strategy, ev)
 
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, trade.my_order)
 
-    # TODO ugly private method
     async def _on_sold(self, strategy: "Strategy", trade: Trade) -> None:
         # append to list of trades
-        self._strategy_trades[strategy].append(trade)
+        self._trades[strategy].append(trade)
 
         # push event to loop
         ev = Event(type=Event.Types.SOLD, target=trade)
-        self._engine.pushTargetedEvent(strategy, ev)
+        self._engine.push_targeted_event(strategy, ev)
 
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, trade.my_order)
@@ -57,7 +56,7 @@ class StrategyManagerOrderEntryMixin(object):
     async def _on_received(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.RECEIVED, target=order)
-        self._engine.pushTargetedEvent(strategy, ev)
+        self._engine.push_targeted_event(strategy, ev)
 
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, order)
@@ -65,7 +64,7 @@ class StrategyManagerOrderEntryMixin(object):
     async def _on_canceled(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.CANCELED, target=order)
-        self._engine.pushTargetedEvent(strategy, ev)
+        self._engine.push_targeted_event(strategy, ev)
 
         # synchronize state when engine processes this
         self._alerted_events[ev] = (strategy, order)
@@ -73,7 +72,7 @@ class StrategyManagerOrderEntryMixin(object):
     async def _on_rejected(self, strategy: "Strategy", order: Order) -> None:
         # push event to loop
         ev = Event(type=Event.Types.REJECTED, target=order)
-        self._engine.pushTargetedEvent(strategy, ev)
+        self._engine.push_targeted_event(strategy, ev)
 
     # *********************
     # Order Entry Methods *
@@ -82,35 +81,35 @@ class StrategyManagerOrderEntryMixin(object):
     async def new_order(self, strategy: "Strategy", order: Order) -> bool:
         """helper method, defers to buy/sell"""
         # ensure has list
-        if strategy not in self._strategy_open_orders:
-            self._strategy_open_orders[strategy] = []
+        if strategy not in self._open_orders:
+            self._open_orders[strategy] = []
 
-        if strategy not in self._strategy_past_orders:
-            self._strategy_past_orders[strategy] = []
+        if strategy not in self._closed_orders:
+            self._closed_orders[strategy] = []
 
-        if strategy not in self._strategy_trades:
-            self._strategy_trades[strategy] = []
+        if strategy not in self._trades:
+            self._trades[strategy] = []
 
         # append to open orders list
-        self._strategy_open_orders[strategy].append(order)
+        self._open_orders[strategy].append(order)
 
         # append to past orders list
-        self._strategy_past_orders[strategy].append(order)
+        self._closed_orders[strategy].append(order)
 
         # TODO check risk
-        order, approved = await self._risk_mgr.newOrder(strategy, order)
+        order, approved = await self._risk_mgr.new_order(strategy, order)
 
         # was this trade allowed?
         if approved:
             # send to be executed
-            received = await self._order_mgr.newOrder(strategy, order)
+            received = await self._order_mgr.new_order(strategy, order)
 
             if received:
-                await self._onReceived(strategy, order)
+                await self._on_received(strategy, order)
             return received
 
         # raise onRejected
-        await self._onRejected(strategy, order)
+        await self._on_rejected(strategy, order)
         return False
 
     async def cancel_order(self, strategy: "Strategy", order: Order) -> bool:
@@ -141,10 +140,10 @@ class StrategyManagerOrderEntryMixin(object):
             list (Order): list of open orders
         """
         # ensure has list
-        if strategy not in self._strategy_open_orders:
-            self._strategy_open_orders[strategy] = []
+        if strategy not in self._open_orders:
+            self._open_orders[strategy] = []
 
-        ret = self._strategy_open_orders[strategy].copy()
+        ret = self._open_orders[strategy].copy()
         if instrument:
             ret = [r for r in ret if r.instrument == instrument]
         if exchange:
@@ -170,10 +169,10 @@ class StrategyManagerOrderEntryMixin(object):
             list (Order): list of open orders
         """
         # ensure has list
-        if strategy not in self._strategy_past_orders:
-            self._strategy_past_orders[strategy] = []
+        if strategy not in self._closed_orders:
+            self._closed_orders[strategy] = []
 
-        ret = self._strategy_past_orders[strategy].copy()
+        ret = self._closed_orders[strategy].copy()
         if instrument:
             ret = [r for r in ret if r.instrument == instrument]
         if exchange:
@@ -199,10 +198,10 @@ class StrategyManagerOrderEntryMixin(object):
             list (Trade): list of trades
         """
         # ensure has list
-        if strategy not in self._strategy_trades:
-            self._strategy_trades[strategy] = []
+        if strategy not in self._trades:
+            self._trades[strategy] = []
 
-        ret = self._strategy_trades[strategy].copy()
+        ret = self._trades[strategy].copy()
         if instrument:
             ret = [r for r in ret if r.instrument == instrument]
         if exchange:
@@ -220,7 +219,7 @@ class StrategyManagerOrderEntryMixin(object):
             # remove from list of open orders if done
             if order.filled >= order.volume:
                 try:
-                    self._strategy_open_orders[strategy].remove(order)
+                    self._open_orders[strategy].remove(order)
                 except ValueError:
                     ...
         else:
@@ -230,7 +229,7 @@ class StrategyManagerOrderEntryMixin(object):
         await self._risk_mgr.on_traded(event, strategy)
         await self._order_mgr.on_traded(event, strategy)
 
-    async def onReceived(self, event: Event) -> None:
+    async def on_received(self, event: Event) -> None:
         # synchronize state
         if event in self._alerted_events:
             strategy, order = self._alerted_events[event]
@@ -248,7 +247,7 @@ class StrategyManagerOrderEntryMixin(object):
             strategy, order = self._alerted_events[event]
             # remove from list of open orders
             try:
-                self._strategy_open_orders[strategy].remove(order)
+                self._open_orders[strategy].remove(order)
             except ValueError:
                 ...
         else:
@@ -264,7 +263,7 @@ class StrategyManagerOrderEntryMixin(object):
             strategy, order = self._alerted_events[event]
             # remove from list of open orders
             try:
-                self._strategy_open_orders[strategy].remove(order)
+                self._open_orders[strategy].remove(order)
             except ValueError:
                 ...
         else:
