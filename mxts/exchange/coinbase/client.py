@@ -6,10 +6,9 @@ from types import TracebackType
 from typing import Any, AsyncIterator, Awaitable, Callable, List, Optional, Type
 
 import aiohttp
-from yarl import URL
-
-from pydantic import BaseModel
+from pydantic import PositiveInt
 from pandas import Timestamp
+from yarl import URL
 
 from .data import *
    
@@ -79,6 +78,47 @@ class CoinbaseClient:
             ret = await resp.json()
             return Account(**ret)
 
+    async def get_account_ledger(
+        self, 
+        account_id: str,
+        start_date: Optional[Timestamp] = None, 
+        end_date: Optional[Timestamp] = None,
+        before: Optional[Timestamp] = None, 
+        after: Optional[Timestamp] = None,
+        limit: Optional[PositiveInt] = 100,
+    ) -> List[LedgerEntity]:
+        """ Lists ledger activity for an account. 
+            This includes anything that would affect the 
+            accounts balance - transfers, trades, fees, etc.
+
+        Args:
+            account_id (str): id associated with account
+            start_date (Timestamp, optional): Filter results by minimum posted date. Defaults to None.
+            end_date (Timestamp, optional): Filter results by maximum posted date. Defaults to None.
+            before (Timestamp, optional): Used for pagination. Sets start cursor to before date. Defaults to None.
+            after (Timestamp, optional): Used for pagination. Sets end cursor to after date. Defaults to None.
+            limit (int, optional): Limit on number of results to return. Defaults to 100.
+
+        Returns:
+            List[Ledger]: _description_
+        """
+        url = self._make_url(f"accounts/{account_id}/ledger")
+        params = {}
+        if start_date is not None:
+            params["start_date"] = str(start_date)
+        if end_date is not None:
+            params["end_date"] = str(end_date)
+        if before is not None:
+            params["before"] = str(before)
+        if after is not None:
+            params["after"] = str(after)        
+        if limit is not None:
+            params["limit"] = limit
+        async with self._session.get(url, headers=self._hash_msg("GET", url.path), params=params) as resp:
+            ret = await resp.json()
+            return [LedgerEntity(**r) for r in ret]
+
+    
     #async def convert_currency(self, **kwargs) -> Ticker:
     #    async with self._session.post(self._make_url("conversions"), json=kwargs) as resp:
     #         ret = await resp.json()
@@ -93,7 +133,8 @@ class CoinbaseClient:
             ret = await resp.json()
             return Stats(**ret)
     
-    async def get_candles(self, 
+    async def get_candles(
+        self, 
         product_id: str, 
         granularity: Optional[str] = None, 
         start: Optional[Timestamp] = None, 
@@ -175,7 +216,8 @@ class CoinbaseClient:
     #         ret = await resp.json()
     #         return [Order(**r) for r in ret]
 
-    async def create_order(self,
+    async def create_order(
+        self,
         profile_id: str = None,
         type: TradeType = TradeType.limit,
         side: TradeSide = TradeSide.buy,
@@ -265,4 +307,9 @@ class CoinbaseClient:
        async with self._session.get(self._make_url(f"currencies/{currency_id}")) as resp:
            ret = await resp.json()
            return Currency(**ret)
+    
+    async def get_currencies(self) -> List[Currency]:
+       async with self._session.get(self._make_url(f"currencies")) as resp:
+           ret = await resp.json()
+           return [Currency(**r) for r in ret]
 

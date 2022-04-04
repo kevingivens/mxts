@@ -1,43 +1,9 @@
 from typing import Any, AsyncIterator, Awaitable, Callable, List, Optional, Type
-from enum import Enum
+
 from pydantic import BaseModel
 from pandas import Timestamp
 
-
-class Stp(str, Enum):
-    dc = 'dc'
-    co = 'co'
-    cn = 'cn'
-    cb = 'cb'
-
-class Stop(str, Enum):
-    loss = 'loss'
-    entry = 'entry'
-
-
-class TradeSide(str, Enum):
-    buy = 'buy'
-    sell = 'sell'
-
-
-class TradeType(str, Enum):
-    limit = 'limit'
-    market = 'market'
-    stop = 'stop'
-
-
-class TimeInForce(str, Enum):
-    GTC = 'GTC'
-    GTT = 'GTT'
-    IOC = 'IOC'
-    FOK = 'FOK'
-
-
-class CancelAfter(str, Enum):
-    min = 'min'
-    hour = 'hour'
-    day = 'day'
-    
+from .enums import *
 
 class Ticker(BaseModel):
     trade_id: int
@@ -107,4 +73,7 @@ class Currency(BaseModel):
     max_precision: float
     convertible_to: Optional[List]
     details: CurrencyDetail
-   
+
+
+class LedgerEntity(BaseModel):
+    type: EntryType = None

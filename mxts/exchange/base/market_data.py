@@ -10,7 +10,10 @@ from mxts.data import Instrument, Event
 
 class MarketData:
     """mixin class to represent the streaming-source
-    side of a data source"""
+    side of a data source
+    
+    TODO: add implementation logic if possible
+    """
 
     async def instruments(self) -> List[Instrument]:
         """get list of available instruments"""
