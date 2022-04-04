@@ -8,7 +8,7 @@ from ..base import ManagerBase
 
 if TYPE_CHECKING:
     from aat.strategy import Strategy
-    from ..manager import StrategyManager
+    from ..strategy import StrategyManager
 
 
 class RiskManager(ManagerBase):

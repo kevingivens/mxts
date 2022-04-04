@@ -7,6 +7,7 @@ from typing import (
     Awaitable,
     AsyncGenerator,
     Callable,
+    Coroutine,
     Dict,
     List,
     Optional,
@@ -19,11 +20,10 @@ from mxts.core.handler import EventHandler
 from mxts.data import Event, Error
 from mxts.config import TradingType, EventType
 from mxts.config.config import Settings
-from mxts.exchange import Exchange
-from mxts.exchange.coinbase.coinbase import CoinbaseProExchange
+from mxts.exchange.coinbase.exchange import CoinbaseProExchange
 from mxts.strategy import Strategy
 
-from .managers import StrategyManager, OrderManager, PortfolioManagers, RiskManager
+from .managers import StrategyManager
 
 try:
     import uvloop  # type: ignore
@@ -60,13 +60,21 @@ class TradingEngine(object):
         #    verbose=self.verbose,
         #)
 
-        # TODO: configure exchange in Settings Object
-        self.exchanges = [CoinbaseProExchange()]
+        # TODO: configure exchange in get_exchange method
+        self.exchanges = [
+            CoinbaseProExchange(
+                verbose = self.verbose,
+                trading_type = self.trading_type,
+                api_key = config.cb_key,
+                api_secret = config.cb_secret,
+                api_passphrase = config.cb_passphrase,
+            )
+        ]
         
         # instantiate the Strategy Manager
-        self.strat_mgr = StrategyManager(
-            self, self.trading_type, self.exchanges, self.load_accounts
-        )
+        #self.strat_mgr = StrategyManager(
+        #    self, self.trading_type, self.exchanges, self.load_accounts
+        #)
 
         # set event loop to use uvloop
         if uvloop:
@@ -75,8 +83,8 @@ class TradingEngine(object):
         # install event loop
         self.event_loop = asyncio.get_event_loop()
 
-        # setup subscriptions
-        self._handler_subscriptions: Dict[EventType, List] = {
+        # setup handler subscriptions
+        self._handler_subs: Dict[EventType, List[Coroutine]] = {
             e: [] for e in EventType
         }
 
@@ -93,9 +101,9 @@ class TradingEngine(object):
 
         self.event_handlers = ()
         
-        for strategy in self.strategies:
-            self.log.critical(f"Installing strategy: {strategy}")
-            self.register_handler(strategy)
+        for strat in self.strategies:
+            self.log.critical(f"Installing strategy: {strat}")
+            self.register_handler(strat)
 
         # warn if no event handlers installed
         if not self.event_handlers:
@@ -149,15 +157,15 @@ class TradingEngine(object):
             event_type (EventType): event type enum value to register
             callback (function): function to call on events of `event_type`
             handler (EventHandler): class holding the callback (optional)
-        Returns:
-            value (bool): True if registered (new), else False
+        
         """
-        if (callback, handler) not in self._handler_subscriptions[event_type]:
-            # if not asyncio.iscoroutinefunction(callback):
-            #     callback = self._make_async(callback)
-            self._handler_subscriptions[event_type].append((callback, handler))
-            return True
-        return False
+        self._handler_subs[event_type].append((callback, handler))
+        #if (callback, handler) not in self._handler_subs[event_type]:
+        #    # if not asyncio.iscoroutinefunction(callback):
+        #    #     callback = self._make_async(callback)
+        #    self._handler_subs[event_type].append((callback, handler))
+        #    return True
+        #return False
 
     async def push_event(self, event: Event) -> None:
         """push non-exchange event into the queue"""
@@ -170,6 +178,7 @@ class TradingEngine(object):
         
         # self._queued_targeted_events: Deque[Tuple[Strategy, Event]] = asyncio.Queue()
 
+        # TODO: move this into a Context Manager (Trading Session) __aenter__
         # await all connections
         await asyncio.gather(
             *(asyncio.create_task(exch.connect()) for exch in self.exchanges)
@@ -186,9 +195,9 @@ class TradingEngine(object):
         # **************** #
         async with merge(
             *(
-                exch.tick()
-                for exch in self.exchanges + [self]
-                if inspect.isasyncgenfunction(exch.tick)
+                exchange.tick()
+                for exchange in self.exchanges + [self]
+                if inspect.isasyncgenfunction(exchange.tick)
             )
         ).stream() as stream:
             # stream through all events
@@ -199,9 +208,8 @@ class TradingEngine(object):
 
                 self._latest = datetime.now()
 
-                # process any secondary events
+                # process internal events
                 while not self._event_queue.empty():
-                   
                     event = await self._event_queue.get()
                     await self.process_event(event)
 
@@ -227,6 +235,7 @@ class TradingEngine(object):
                 #if any(exceptions):
                 #    raise exceptions[0].exception()
 
+        # TODO: move this into a Context Manager (Trading Session) __aexit__
         # Before engine shutdown, send an exit event
         await self.process_event(Event(type=EventType.EXIT, target=None))
 
@@ -240,7 +249,7 @@ class TradingEngine(object):
             # ignore heartbeat
             return
 
-        for callback, handler in self._handler_subscriptions[event.type]:
+        for callback, handler in self._handler_subs[event.type]:
             # TODO make cleaner? move to somewhere not in critical path?
             if strategy is not None and (handler not in (strategy, self.strat_mgr)):
                 continue
@@ -261,6 +270,7 @@ class TradingEngine(object):
 
             try:
                 # await callback(event)
+                # TODO: replace thread pool with Ray
                 await self.event_loop.run_in_executor(self.executor, callback, event)
             except KeyboardInterrupt:
                 raise
@@ -304,6 +314,8 @@ class TradingEngine(object):
         )
 
     def start(self) -> None:
+        # TODO replace this with trading session context manager
+        # see OANDA offical python binding for example
         try:
             self.event_loop.run_until_complete(self.run())
         except KeyboardInterrupt:

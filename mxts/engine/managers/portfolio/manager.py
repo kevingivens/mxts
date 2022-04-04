@@ -10,7 +10,7 @@ from .portfolio import Portfolio
 
 if TYPE_CHECKING:
     from mxts.strategy import Strategy
-    from ..manager import StrategyManager
+    from ..strategy import StrategyManager
 
 
 class PortfolioManager(ManagerBase):
