@@ -21,7 +21,7 @@ from mxts.data import Event, Error
 from mxts.config import TradingType, EventType
 from mxts.config.config import Settings
 from mxts.exchange.coinbase.exchange import CoinbaseProExchange
-from mxts.strategy import Strategy
+# from mxts.strategy import Strategy
 
 from .managers import StrategyManager
 
@@ -61,15 +61,17 @@ class TradingEngine(object):
         #)
 
         # TODO: configure exchange in get_exchange method
-        self.exchanges = [
-            CoinbaseProExchange(
-                verbose = self.verbose,
-                trading_type = self.trading_type,
-                api_key = config.cb_key,
-                api_secret = config.cb_secret,
-                api_passphrase = config.cb_passphrase,
-            )
-        ]
+        self.exchanges = []
+        
+        #self.exchanges = [
+        #    CoinbaseProExchange(
+        #        verbose = self.verbose,
+        #        trading_type = self.trading_type,
+        #        key = config.cb_key,
+        #        secret = config.cb_secret,
+        #        passphrase = config.cb_passphrase,
+        #    )
+        #]
         
         # instantiate the Strategy Manager
         #self.strat_mgr = StrategyManager(
@@ -92,7 +94,7 @@ class TradingEngine(object):
         self._latest = datetime.fromtimestamp(0) if self.offline else datetime.now()
 
         # register internal management event handler before all strategy handlers
-        self.register_handler(self.strat_mgr)
+        # self.register_handler(self.strat_mgr)
 
         # install event handlers
         # self.strategies = get_strategies(config["strategy"])
@@ -180,12 +182,12 @@ class TradingEngine(object):
 
         # TODO: move this into a Context Manager (Trading Session) __aenter__
         # await all connections
-        await asyncio.gather(
-            *(asyncio.create_task(exch.connect()) for exch in self.exchanges)
-        )
-        await asyncio.gather(
-            *(asyncio.create_task(exch.instruments()) for exch in self.exchanges)
-        )
+        #await asyncio.gather(
+        #    *(asyncio.create_task(exch.connect()) for exch in self.exchanges)
+        #)
+        #await asyncio.gather(
+        #    *(asyncio.create_task(exch.instruments()) for exch in self.exchanges)
+        #)
 
         # send start event to all callbacks
         await self.process_event(Event(type=EventType.START, target=None))
@@ -239,7 +241,7 @@ class TradingEngine(object):
         # Before engine shutdown, send an exit event
         await self.process_event(Event(type=EventType.EXIT, target=None))
 
-    async def process_event(self, event: Event, strategy: Strategy = None) -> None:
+    async def process_event(self, event: Event) -> None:
         """send an event to all registered event handlers
         Args:
             event (Event): event to send
@@ -251,8 +253,8 @@ class TradingEngine(object):
 
         for callback, handler in self._handler_subs[event.type]:
             # TODO make cleaner? move to somewhere not in critical path?
-            if strategy is not None and (handler not in (strategy, self.strat_mgr)):
-                continue
+            #if strategy is not None and (handler not in (strategy, self.strat_mgr)):
+            #    continue
 
             # TODO make cleaner? move to somewhere not in critical path?
             if (
@@ -315,7 +317,6 @@ class TradingEngine(object):
 
     def start(self) -> None:
         # TODO replace this with trading session context manager
-        # see OANDA offical python binding for example
         try:
             self.event_loop.run_until_complete(self.run())
         except KeyboardInterrupt:

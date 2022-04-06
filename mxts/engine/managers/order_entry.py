@@ -1,6 +1,6 @@
 from typing import List, TYPE_CHECKING
 
-from mxts.core import Instrument, ExchangeType, Event, Order, Trade
+from mxts.data import Instrument, ExchangeType, Event, Order, Trade
 from mxts.config import Side
 from mxts.exchange import Exchange
 
