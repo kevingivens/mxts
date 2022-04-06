@@ -3,7 +3,7 @@ from typing import List, AsyncGenerator, Any
 # from mxts.core import ExchangeType, Order, Instrument, Position, Event
 # from mxts.config import TradingType, InstrumentType
 
-from mxts.core import Event
+from mxts.data import Event, Instrument
 from mxts.config import TradingType
 
 from yarl import URL
@@ -60,7 +60,7 @@ class CoinbaseProExchange():
                ticker = await self._client.get_ticker(self._subscriptions)
                yield ticker
     
-    async def instruments(self) -> List[Instruments]:  # type: ignore[override]
+    async def instruments(self) -> List[Instrument]:  # type: ignore[override]
         async with self._client as client:
             ret = await self._client.get_currencies()
 

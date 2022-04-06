@@ -11,13 +11,13 @@ class OrderEntry:
      TODO: add implementation logic if possible
     """
 
-    async def accounts(self) -> List[Account]:  # TODO List[Account] ?
-        """get accounts from source"""
-        return []
+    #async def accounts(self) -> List[Account]:  # TODO List[Account] ?
+    #    """get accounts from source"""
+    #    return []
 
-    async def balance(self) -> Instrument:
-        """get cash balance"""
-        return []
+    #async def balance(self) -> Instrument:
+    #    """get cash balance"""
+    #    return []
 
     async def new_order(self, order: Order) -> bool:
         """Submit a new order to the exchange. 

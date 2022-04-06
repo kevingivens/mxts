@@ -73,7 +73,7 @@ class CoinbaseClient:
             return [Account(**r) for r in ret]
 
     async def get_account(self, account_id: str) -> Account:
-        url = self._make_url(f"accounts")
+        url = self._make_url(f"accounts/{account_id}")
         async with self._session.get(url, headers=self._hash_msg("GET", url.path)) as resp:
             ret = await resp.json()
             return Account(**ret)

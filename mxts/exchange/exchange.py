@@ -5,11 +5,12 @@ from typing import List
 
 from mxts.data.instrument import Instrument
 
-from .base.market_data import _MarketData
-from .base.order_entry import _OrderEntry
+#from .base.market_data import MarketData
+#from .base.order_entry import OrderEntry
 
 
-class Exchange(_MarketData, _OrderEntry):
+#class Exchange(MarketData, OrderEntry):
+class Exchange(object):
     """Generic representation of an exchange. There are two primary functionalities of an exchange.
     Market Data Source:
         exchanges can stream data to the engine
