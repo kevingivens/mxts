@@ -99,9 +99,12 @@ class TradingEngine(object):
         # install event handlers
         # self.strategies = get_strategies(config["strategy"])
         
-        self.strategies = ()
+        self.strategies = []
 
-        self.event_handlers = ()
+        self.event_handlers = []
+
+        # setup future queue
+        self._event_queue: asyncio.Queue[Event] = asyncio.Queue()
         
         for strat in self.strategies:
             self.log.critical(f"Installing strategy: {strat}")
@@ -115,7 +118,37 @@ class TradingEngine(object):
         if self.verbose:
             self.log.critical("Installing print handler")
             # self.register_handler(PrintHandler())
+    
+    
+    async def startup(self):
+        # START UP TASKS:
+        # connect to all clients 
+        # check available instruments 
+        # check balances 
+        # log info to db? 
+        # query historical data?
+        # await asyncio.gather(
+        #     *(asyncio.create_task(exch.connect()) for exch in self.exchanges)
+        # )
+        # await asyncio.gather(
+        #     *(asyncio.create_task(exch.instruments()) for exch in self.exchanges)
+        # )
+        # send start event to all callbacks
+        # await self.process_event(Event(type=EventType.START, target=None))
+        pass
 
+    
+    async def shutdown(self):
+        # SHUTDOWN TASKS:
+        # Collect closing balances
+        # Disconnect from exchanges
+        # Write info to disk
+        # Close DB connections
+        # Before engine shutdown, send an exit event
+        # await self.process_event(Event(type=EventType.EXIT, target=None))
+        pass
+    
+    
     @property
     def offline(self) -> bool:
         return self.trading_type in (TradingType.BACKTEST, TradingType.SIMULATION)
@@ -175,22 +208,10 @@ class TradingEngine(object):
 
     async def run(self) -> None:
         """run the engine"""
-        # setup future queue
-        self._event_queue: asyncio.Queue[Event] = asyncio.Queue()
         
         # self._queued_targeted_events: Deque[Tuple[Strategy, Event]] = asyncio.Queue()
 
-        # TODO: move this into a Context Manager (Trading Session) __aenter__
-        # await all connections
-        #await asyncio.gather(
-        #    *(asyncio.create_task(exch.connect()) for exch in self.exchanges)
-        #)
-        #await asyncio.gather(
-        #    *(asyncio.create_task(exch.instruments()) for exch in self.exchanges)
-        #)
-
-        # send start event to all callbacks
-        await self.process_event(Event(type=EventType.START, target=None))
+        #
 
         # **************** #
         # Main event loop
@@ -237,9 +258,7 @@ class TradingEngine(object):
                 #if any(exceptions):
                 #    raise exceptions[0].exception()
 
-        # TODO: move this into a Context Manager (Trading Session) __aexit__
-        # Before engine shutdown, send an exit event
-        await self.process_event(Event(type=EventType.EXIT, target=None))
+        
 
     async def process_event(self, event: Event) -> None:
         """send an event to all registered event handlers

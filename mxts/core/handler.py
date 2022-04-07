@@ -1,97 +1,46 @@
-#from abc import ABCMeta, abstractmethod
-#from inspect import isabstract
-#from typing import TYPE_CHECKING, Callable, Optional, Tuple
+import asyncio
+# from typing import TYPE_CHECKING, Callable, Optional, Tuple
 
+from mxts.config.enums import EventType
 from ..data.event import Event
-#from ..config import EventType
 
-#if TYPE_CHECKING:
-#    # Circular import
-#    from mxts.engine import StrategyManager
-
+def callback(*events):
+    def inner(func):
+        if not hasattr(func, 'registered'):
+            print("registering callback")
+            setattr(func, 'registered', True)
+            setattr(func, 'events', events)
+            print("events: ", getattr(func, 'events'))
+        return func
+    return inner
 
 class EventHandler():
+    
     def __init__(self) -> None:
-        self.callback_map = {}
-        self.register_callbacks()
-    
-    def register_callbacks(self):
-        """ collect all callbacks, organized into dict """
-        callbacks = [m for m in self.__dict__ if m.name.startswith("on_")]
-    
-    #_manager: "StrategyManager"
-
-    #def _set_manager(self, mgr: "StrategyManager") -> None:
-    #    self._manager = mgr
-
-    #def _valid_callback(self, callback: str) -> Optional[Callable]:
-    #    """
-    #    TODO: turn this into wrapper ?
-    #    """
-    #    if (
-    #        hasattr(self, callback)
-    #        and not isabstract(callback)
-    #        and not hasattr(getattr(self, callback), "_original")
-    #    ):
-    #        return getattr(self, callback)
-    #    return None
-    
-    #def callback(self, event_type: EventType) -> Tuple[Optional[Callable], ...]:
-    #    return {
-    #        # Market data
-    #        EventType.TRADE: (self._valid_callback("on_trade"),),
-    #        EventType.OPEN: (
-    #            self._valid_callback("on_open"),
-    #            self._valid_callback("on_order"),
-    #        ),
-    #        EventType.CANCEL: (
-    #            self._valid_callback("on_cancel"),
-    #            self._valid_callback("on_order"),
-    #        ),
-    #        EventType.CHANGE: (
-    #            self._valid_callback("on_change"),
-    #            self._valid_callback("on_order"),
-    #        ),
-    #        EventType.FILL: (
-    #            self._valid_callback("on_fill"),
-    #            self._valid_callback("on_order_event"),
-    #        ),
-    #        EventType.DATA: (self._valid_callback("on_data"),),
-    #        EventType.HALT: (self._valid_callback("on_halt"),),
-    #        EventType.CONTINUE: (self._valid_callback("on_continue"),),
-    #        EventType.ERROR: (self._valid_callback("on_error"),),
-    #        EventType.START: (self._valid_callback("on_start"),),
-    #        EventType.EXIT: (self._valid_callback("on_exit"),),
-    #        # Order Entry
-    #        EventType.BOUGHT: (
-    #            self._valid_callback("on_bought"),
-    #            self._valid_callback("on_traded"),
-    #        ),
-    #        EventType.SOLD: (
-    #            self._valid_callback("on_sold"),
-    #            self._valid_callback("on_traded"),
-    #        ),
-    #        EventType.RECEIVED: (self._valid_callback("on_received"),),
-    #        EventType.REJECTED: (self._valid_callback("on_rejected"),),
-    #        EventType.CANCELED: (self._valid_callback("on_canceled"),),
-    #    }.get(event_type, tuple())
-
+        cb_names = [m for m in dir(self) if m.startswith("on_")]
+        self.callbacks = {m: getattr(getattr(self, m), 'events', []) for m in cb_names}
+        
+       
     #################################################
     # Event Handler Callback                        #
     #                                               #
     # NOTE: these should all be of the form on_noun #
     #################################################
 
-    # @abstractmethod
-    async def on_trade(self, event: Event) -> None:
+    @callback(EventType.TRADE)
+    async def on_trade(self, event: Event=None) -> None:
         """Called whenever a `Trade` event is received"""
+        #print("calling on_trade")
+        await asyncio.sleep(2)
+        return
 
+    @callback(EventType.OPEN, EventType.CANCEL)
     async def on_order(self, event: Event) -> None:
-        """Called whenever an Order `Open`, `Cancel`, `Change`, or `Fill` event is received"""
+        """EventType: Open, Cancel, Change, Fill"""
         pass
 
     async def on_open(self, event: Event) -> None:
-        """Called whenever an Order `Open` event is received"""
+        """ EventType: Open"""
         pass
 
     async def on_cancel(self, event: Event) -> None:

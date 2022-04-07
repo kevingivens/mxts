@@ -213,23 +213,4 @@ class Strategy(
             for p in self.positions(instrument=instrument)
             if p.size != 0
         ]
-        return await asyncio.gather(*(self.newOrder(order) for order in orders))
-
-
-setattr(Strategy.onTrade, "_original", 1)
-setattr(Strategy.onOrder, "_original", 1)
-setattr(Strategy.onOpen, "_original", 1)
-setattr(Strategy.onCancel, "_original", 1)
-setattr(Strategy.onChange, "_original", 1)
-setattr(Strategy.onFill, "_original", 1)
-setattr(Strategy.onData, "_original", 1)
-setattr(Strategy.onHalt, "_original", 1)
-setattr(Strategy.onContinue, "_original", 1)
-setattr(Strategy.onError, "_original", 1)
-setattr(Strategy.onStart, "_original", 1)
-setattr(Strategy.onExit, "_original", 1)
-
-setattr(Strategy.onBought, "_original", 1)
-setattr(Strategy.onSold, "_original", 1)
-setattr(Strategy.onRejected, "_original", 1)
-setattr(Strategy.onTraded, "_original", 1)
+        return await asyncio.gather(*(self.new_order(order) for order in orders))
