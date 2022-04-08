@@ -3,7 +3,7 @@ from typing import List
 
 #from mxts.config.enums import ExchangeType 
 
-from mxts.data.instrument import Instrument
+from mxts.core.data import Instrument
 
 #from .base.market_data import MarketData
 #from .base.order_entry import OrderEntry

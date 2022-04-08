@@ -3,7 +3,7 @@ from typing import List, AsyncGenerator, Any
 # from mxts.core import ExchangeType, Order, Instrument, Position, Event
 # from mxts.config import TradingType, InstrumentType
 
-from mxts.data import Event, Instrument
+from mxts.core.data import Event, Instrument
 from mxts.config import TradingType
 
 from yarl import URL
