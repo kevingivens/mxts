@@ -25,7 +25,7 @@ class Error(BaseModel):
     type: DataType = DataType.ERROR
     data: Any
     timestamp: Timestamp = Timestamp.now()
-    exception: BaseException
+    exception: str
     callback: Callable
 
 
@@ -103,3 +103,27 @@ class Trade(BaseModel):
     slippage = 0.0
     transaction_cost = 0.0
     # assert volume == taker_order.filled
+
+
+class Position(BaseModel):
+    size: float
+    price: float
+    timestamp: Timestamp
+    instrument: Instrument
+    exchange: ExchangeType
+    trades: List[Trade]
+    #size = size
+    #size_history = [(size, times)]
+    #price = price
+    #price_history = [(price, times)]
+    #investment = size * price
+    #investment_history = [(investment, timestamp)]
+    #notional = investment
+    #notional_history = [(investment, timestamp)]
+    #instrumentPrice = price
+    #instrumentPrice_history = [(price, timesstamp)]
+    #pnl = 0.0
+    #pnl_history = [(0.0, timestamp)]
+    #unrealized_pnl = 0.0
+    #unrealized_pnl_history = [(0.0, timestamp)]
+    #trades = trades
