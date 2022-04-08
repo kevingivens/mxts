@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Union, TYPE_CHECKING
 import pandas as pd  # type: ignore
 
 from mxts.config import Side
-from mxts.core import Order, Trade, Instrument, ExchangeType, Position
+from mxts.core.data import Order, Trade, Instrument, ExchangeType, Position
 
 if TYPE_CHECKING:
     from mxts.strategy import Strategy

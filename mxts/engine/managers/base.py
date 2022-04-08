@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import Optional, TYPE_CHECKING
-from mxts.core import Event
+from mxts.core.data import Event
 from mxts.core.handler import EventHandler
 
 

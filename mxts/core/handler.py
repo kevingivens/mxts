@@ -2,7 +2,8 @@ import asyncio
 # from typing import TYPE_CHECKING, Callable, Optional, Tuple
 
 from mxts.config.enums import EventType
-from ..data.event import Event
+
+from .data import Event
 
 def callback(*events):
     def inner(func):

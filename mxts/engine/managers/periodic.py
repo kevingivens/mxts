@@ -3,7 +3,7 @@ from asyncio import Future
 from datetime import datetime
 from typing import Awaitable, Callable, List, Optional
 
-from temporalcache.utils import should_expire  # type: ignore
+# from temporalcache.utils import should_expire  # type: ignore
 
 
 class Periodic(object):
@@ -43,10 +43,10 @@ class Periodic(object):
     def stop(self) -> None:
         self._continue = False
 
-    def expires(self, timestamp: datetime) -> bool:
-        if (timestamp - self._last).total_seconds() < 1:
-            return False
-        return should_expire(self._last, timestamp, self.second, self.minute, self.hour)
+    #def expires(self, timestamp: datetime) -> bool:
+    #    if (timestamp - self._last).total_seconds() < 1:
+    #        return False
+    #    return should_expire(self._last, timestamp, self.second, self.minute, self.hour)
 
     async def execute(self, timestamp: datetime) -> Optional[Future]:
         if self.expires(timestamp):

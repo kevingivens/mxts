@@ -1,13 +1,14 @@
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
-from aat.config import ExitRoutine
-from aat.core import Event, Order, Trade, Position
-from aat.core.handler import EventHandler
+from mxts.config import ExitRoutine
+from mxts.core.data import Event, Order, Trade, Position
+from mxts.core.handler import EventHandler
+
 from ..base import ManagerBase
 
 
 if TYPE_CHECKING:
-    from aat.strategy import Strategy
+    from mxts.strategy import Strategy
     from ..strategy import StrategyManager
 
 
@@ -19,19 +20,15 @@ class RiskManager(ManagerBase):
         # Restricted hours
         self._restricted_trading_hours: Dict["Strategy", Tuple[int, ...]] = {}
 
-    def _setManager(self, manager: "StrategyManager") -> None:
-        """install manager"""
-        self._manager = manager
-
-    def updateAccount(self, positions: List[Position]) -> None:
+    def update_account(self, positions: List[Position]) -> None:
         """update positions tracking with a position from the exchange"""
         pass
 
-    def updateCash(self, positions: List[Position]) -> None:
+    def update_cash(self, positions: List[Position]) -> None:
         """update cash positions from exchange"""
         pass
 
-    def restrictTradingHours(
+    def restrict_trading_hours(
         self,
         strategy: "Strategy",
         start_second: Optional[int] = None,
@@ -54,7 +51,7 @@ class RiskManager(ManagerBase):
     # *********************
     # Order Entry Methods *
     # *********************
-    async def newOrder(self, strategy: "Strategy", order: Order) -> Tuple[Order, bool]:
+    async def new_order(self, strategy: "Strategy", order: Order) -> Tuple[Order, bool]:
         # TODO
         self._active_orders.append(order)  # TODO use strategy
         return order, True
@@ -62,54 +59,54 @@ class RiskManager(ManagerBase):
     # **********************
     # EventHandler methods *
     # **********************
-    async def onTrade(self, event: Event) -> None:
+    async def on_trade(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onCancel(self, event: Event) -> None:
+    async def on_cancel(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onOpen(self, event: Event) -> None:
+    async def on_open(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onFill(self, event: Event) -> None:
+    async def on_fill(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onChange(self, event: Event) -> None:
+    async def on_change(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onData(self, event: Event) -> None:
+    async def on_data(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onHalt(self, event: Event) -> None:
+    async def on_halt(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onContinue(self, event: Event) -> None:
+    async def on_continue(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onError(self, event: Event) -> None:
+    async def on_error(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onStart(self, event: Event) -> None:
+    async def on_start(self, event: Event) -> None:
         # TODO
         pass
 
-    async def onExit(self, event: Event) -> None:
+    async def on_exit(self, event: Event) -> None:
         # TODO
         pass
 
     #########################
     # Order Entry Callbacks #
     #########################
-    async def onTraded(  # type: ignore[override]
+    async def on_traded(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         trade: Trade = event.target  # type: ignore
@@ -120,13 +117,13 @@ class RiskManager(ManagerBase):
         ):
             self._active_orders.remove(trade.my_order)
 
-    async def onReceived(  # type: ignore[override]
+    async def on_received(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         # TODO
         pass
 
-    async def onRejected(  # type: ignore[override]
+    async def on_rejected(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         order: Order = event.target  # type: ignore
@@ -134,7 +131,7 @@ class RiskManager(ManagerBase):
         if order in self._active_orders:
             self._active_orders.remove(order)
 
-    async def onCanceled(  # type: ignore[override]
+    async def on_canceled(  # type: ignore[override]
         self, event: Event, strategy: Optional[EventHandler]
     ) -> None:
         order: Order = event.target  # type: ignore

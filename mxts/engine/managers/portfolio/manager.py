@@ -2,7 +2,8 @@ import pandas as pd  # type: ignore
 from datetime import datetime
 from typing import cast, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
-from mxts.core import Event, Trade, Instrument, ExchangeType, Position
+from mxts.config.enums import ExchangeType
+from mxts.core.data import Event, Trade, Instrument, Position
 
 from ..base import ManagerBase
 from .portfolio import Portfolio
@@ -40,11 +41,11 @@ class PortfolioManager(ManagerBase):
         """update with list of strategies"""
         self._portfolio.update_strategies(strategies)
 
-    def updateAccount(self, positions: List[Position]) -> None:
+    def update_account(self, positions: List[Position]) -> None:
         """update positions tracking with a position from the exchange"""
         self._portfolio.update_account(positions)
 
-    def updateCash(self, positions: List[Position]) -> None:
+    def update_cash(self, positions: List[Position]) -> None:
         """update cash positions from exchange"""
         self._portfolio.update_cash(positions)
 

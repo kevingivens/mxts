@@ -1,10 +1,7 @@
-from aat.core import Position
-from .risk import RiskManager
-
+from mxts.core.data import Position
 
 class StrategyManagerRiskMixin(object):
-    _risk_mgr: RiskManager
-
+    
     # *********************
     # Risk Methods        *
     # *********************

@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import List, Union, TYPE_CHECKING
 
-from mxts.core import Instrument, ExchangeType, Position
+from mxts.core.data import Instrument, ExchangeType, Position
 
 from .manager import PortfolioManager
 from .portfolio import Portfolio

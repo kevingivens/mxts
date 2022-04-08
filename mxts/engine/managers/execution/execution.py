@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, cast, Dict, List, Optional, Tuple
 
-from mxts.core import Order, Event, Trade, ExchangeType
+from mxts.core.data import Order, Event, Trade, ExchangeType
 from mxts.core.handler import EventHandler
 from mxts.exchange import Exchange
 from ..base import ManagerBase
