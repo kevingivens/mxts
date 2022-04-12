@@ -1,9 +1,8 @@
 import pytest
-from aat.core import ExchangeType, Instrument
+from mxts.core import ExchangeType, Instrument
 
-
+@pytest.mark.skip
 class TestInstrument(object):
-    @pytest.mark.skipif("os.environ.get('AAT_USE_CPP', '')")
     def test_instrument(self):
         E1 = ExchangeType("E1")
         E2 = ExchangeType("E2")
