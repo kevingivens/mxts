@@ -2,6 +2,7 @@ import asyncio
 from asyncio.log import logger
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from decimal import Decimal
 from typing import (
     Any,
     AsyncGenerator,
@@ -11,25 +12,28 @@ from typing import (
 )
 
 from aiostream.stream import merge  # type: ignore
+from cryptofeed import FeedHandler
+from cryptofeed.defines import TICKER
+from cryptofeed.exchanges import Coinbase, Bitfinex
+
 from pandas import Timestamp
 
 from mxts.core.handler import EventHandler
 from mxts.core.data import Event, Error
 from mxts.config import TradingType, EventType
 from mxts.config.config import Settings
-from mxts.exchange.coinbase.exchange import CoinbaseProExchange
+
 # from mxts.strategy import Strategy
 
 from .managers import StrategyManager
 
-try:
-    import uvloop  # type: ignore
-except ImportError:
-    uvloop = None
-
 # Set up the logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+async def ticker(t, receipt_timestamp):
+    print(f'Ticker received at {receipt_timestamp}: {t}')
 
 
 class TradingEngine(object):
@@ -50,53 +54,32 @@ class TradingEngine(object):
         # Load account information from exchanges
         self.load_accounts = config.load_accounts
 
-        # TODO replace with Ray
-        self.executer = ThreadPoolExecutor()
-        
-        # set event loop to use uvloop
-        if uvloop:
-            asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        self.feed_handler = FeedHandler()
 
-        # install event loop
-        self.event_loop = asyncio.get_event_loop()
-
-        # Load exchange instances
-        #self.exchanges = get_exchanges(
-        #    config["exchanges"],
-        #    trading_type=self.trading_type,
-        #    verbose=self.verbose,
-        #)
-
-        # TODO: configure exchange in get_exchange method
-        self.exchanges = []
+        ticker_cb = {TICKER: ticker}
         
-        #self.exchanges = [
-        #    CoinbaseProExchange(
-        #        verbose = self.verbose,
-        #        trading_type = self.trading_type,
-        #        key = config.cb_key,
-        #        secret = config.cb_secret,
-        #        passphrase = config.cb_passphrase,
-        #    )
-        #]
-        
+        self.feed_handler.add_feed(
+            Coinbase(symbols=['BTC-USD', 'ETH-USD'], channels=[TICKER], callbacks=ticker_cb),
+            # Bitfinex(symbols=['BTC-USD'], channels=[TICKER], callbacks=ticker_cb)
+        )
+  
         # instantiate the Strategy Manager
         #self.strat_mgr = StrategyManager(
         #    self, self.trading_type, self.exchanges, self.load_accounts
         #)
 
         # set up logging, TODO: replace/consider async logger
-        self.logger = logging.getLogger(__name__)
-        if self.verbose:
-            self.logger.setLevel(logging.DEBUG)
+        #self.logger = logging.getLogger(__name__)
+        #if self.verbose:
+        #    self.logger.setLevel(logging.DEBUG)
 
         # setup handler subscriptions
-        self._handler_subs: Dict[EventType, List[Coroutine]] = {
-            e: [] for e in EventType
-        }
+        # self._handler_subs: Dict[EventType, List[Coroutine]] = {
+        #     e: [] for e in EventType
+        # }
 
         # setup `now` handler for backtest
-        self._latest = Timestamp(0) if self.offline else Timestamp.now()
+        # self._latest = Timestamp(0) if self.offline else Timestamp.now()
 
         # register internal management event handler before all strategy handlers
         # self.register_handler(self.strat_mgr)
@@ -108,22 +91,20 @@ class TradingEngine(object):
 
         self.event_handlers = []
 
-        self._event_queue: asyncio.Queue[Event] = asyncio.Queue()
+        # self._event_queue: asyncio.Queue[Event] = asyncio.Queue()
         
-        for strat in self.strategies:
-            self.logger.critical(f"Installing strategy: {strat}")
-            self.register_handler(strat)
+        # for strat in self.strategies:
+        #    self.logger.critical(f"Installing strategy: {strat}")
+        #    self.register_handler(strat)
 
         # warn if no event handlers installed
-        if not self.event_handlers:
-            self.logger.critical("Warning! No event handlers set")
+        # if not self.event_handlers:
+        #    self.logger.critical("Warning! No event handlers set")
 
         # install print handler if verbose
-        if self.verbose:
-            self.logger.critical("Installing print handler")
-            # self.register_handler(PrintHandler())
-    
-    
+        #if self.verbose:
+        #    self.logger.critical("Installing print handler")
+        #    # self.register_handler(PrintHandler())
     
     @property
     def offline(self) -> bool:
@@ -146,7 +127,10 @@ class TradingEngine(object):
         """push internal event onto the queue"""
         await self._event_queue.put(event)
 
-    async def run(self) -> None:
+    def run(self) -> None:
+        self.feed_handler.run()
+
+    async def run_old(self) -> None:
         """main event loop"""
         async with merge(
             *(ex.tick() for ex in self.exchanges + [self])
