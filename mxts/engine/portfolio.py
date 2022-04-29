@@ -1,5 +1,5 @@
-from turtle import position
-from unicodedata import numeric
+from decimal import Decimal
+
 import numpy as np
 from yapic import json
 from typing import List, TYPE_CHECKING
@@ -37,6 +37,4 @@ class Portfolio(object):
     def balance(self):
         """return value of portfolio"""
         return np.sum([ps.balance for ps in self.positions])
-
-
 
