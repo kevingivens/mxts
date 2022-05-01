@@ -1,20 +1,27 @@
 from decimal import Decimal
+from typing import List
 
+from cryptofeed.types import Balance
 import numpy as np
 from yapic import json
-from typing import List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from cryptofeed.types import Balance
 
 
-def _hook(data):
-    if "__portfolio__" in data:
-        return Portfolio([json.loads(ps, parse_float=Decimal) for ps in data["positions"]])
+def _from_dict(data):
+    # TODO: merge into Balance class def
+    b = Balance(
+        'COINBASE',
+        data['currency'],
+        Decimal(data['balance']),
+        Decimal(data['reserved'])
+    )
+    return b
 
-def load(data):
-    return json.loads(data, object_hook=_hook)
 
+def loads(data):
+    positions = json.loads(data)
+    portfolio = Portfolio([_from_dict(p) for p in positions])
+    return portfolio
+    
 
 class Portfolio(object):
     """
@@ -31,10 +38,9 @@ class Portfolio(object):
        self.positions: List[Balance] = positions
 
     def __json__(self):
-        return {"__portfolio__": True, "positions": [ps.to_dict(numeric_type=str) for ps in self.positions]}
+        return [ps.to_dict(numeric_type=str) for ps in self.positions]
 
     @property
     def balance(self):
         """return value of portfolio"""
         return np.sum([ps.balance for ps in self.positions])
-
