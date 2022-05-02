@@ -1,4 +1,6 @@
 from decimal import Decimal
+from opcode import opname
+from turtle import position
 from typing import List
 
 from cryptofeed.types import Balance
@@ -22,6 +24,16 @@ def loads(data):
     portfolio = Portfolio([_from_dict(p) for p in positions])
     return portfolio
     
+def load(fp):
+    with open(fp) as f:
+        positions = json.load(fp)
+    portfolio = Portfolio([_from_dict(p) for p in positions])
+    return portfolio
+     
+def dump(fp):
+    with open(fp) as f:
+        json.dump(fp)
+
 
 class Portfolio(object):
     """
