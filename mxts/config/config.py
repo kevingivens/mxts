@@ -20,10 +20,15 @@ class Settings(BaseSettings):
     # universe of trading symbols
     symbols = ['BTC-USD', 'ETH-USD']
     
-    # exchanges to use
+    # exchanges to communicate with
     exchanges = [COINBASE]
+
+    # local path to portfolio io
+    portfolio_fp: str
+
+    alpha_models: List[AlphaModel] = []
     
-    
+
    
 
 
